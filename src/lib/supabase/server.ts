@@ -1,29 +1,8 @@
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+// lib/supabase/server.ts
+import { createClient } from '@supabase/supabase-js';
 
-export function createClient() {
-  const cookieStore = cookies();
+// Usando las variables de entorno del servidor
+const supabaseUrl = process.env.SUPABASE_URL as string;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          // Esto obtiene las cookies del cliente
-          const allCookies = cookieStore.getAll();
-          return allCookies.map((cookie) => ({
-            name: cookie.name,
-            value: cookie.value,
-          }));
-        },
-        setAll(cookiesToSet) {
-          // Esto establece las cookies del cliente
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
-}
+export const supabase = createClient(supabaseUrl, supabaseKey);

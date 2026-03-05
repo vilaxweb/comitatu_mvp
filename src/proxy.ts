@@ -1,12 +1,11 @@
-// src/proxy.ts
 import { NextResponse } from 'next/server';
 
-export function middleware(request: Request) {
-  // Lógica de tu proxy o middleware aquí
-  return NextResponse.next();
+export function proxy(request: Request) {
+  // Lógica del proxy
+  return NextResponse.next();  // o cualquier lógica que desees implementar
 }
 
-// Aquí puedes especificar las rutas a las que deseas que se aplique el middleware
+// Configura las rutas que deseas que usen este proxy
 export const config = {
   matcher: ['/api/:path*', '/dashboard'],
 };
