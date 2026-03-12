@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown, ChevronRight, Pencil, Trash2, Check, X } from "lucide-react";
-import { deleteService, deleteItem, updateItem } from "../actions";
+import { deleteService, deleteItem, updateItem, toggleServiceActive, toggleItemActive } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,7 +22,8 @@ export type ServiceWithItems = {
   name: string;
   description: string | null;
   created_at: string;
-  items: { id: string; name: string; price: string; estimated_time: string }[];
+  active: boolean;
+  items: { id: string; name: string; price: string; estimated_time: string; active: boolean }[];
 };
 
 function formatPrice(price: string): string {
@@ -34,7 +35,7 @@ function formatPrice(price: string): string {
   }).format(n);
 }
 
-type Item = { id: string; name: string; price: string; estimated_time: string };
+type Item = { id: string; name: string; price: string; estimated_time: string; active: boolean };
 
 function ItemRow({
   item,
@@ -145,42 +146,66 @@ function ItemRow({
   }
 
   return (
-    <TableRow>
-      <TableCell className="font-medium">{item.name}</TableCell>
-      <TableCell className="text-right tabular-nums">
-        {formatPrice(item.price)}
-      </TableCell>
-      <TableCell className="text-muted-foreground">
-        {item.estimated_time}
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex items-center justify-end gap-0.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            onClick={onStartEdit}
-            aria-label={`Editar ítem ${item.name}`}
-          >
-            <Pencil className="size-4" aria-hidden />
-          </Button>
-          <form action={deleteItem} className="inline">
+      <TableRow className={item.active ? undefined : "opacity-60"}>
+        <TableCell className="font-medium">{item.name}</TableCell>
+        <TableCell className="text-right tabular-nums">
+          {formatPrice(item.price)}
+        </TableCell>
+        <TableCell className="text-muted-foreground">
+          {item.estimated_time}
+        </TableCell>
+        <TableCell className="text-center">
+          <form action={toggleItemActive} className="inline-flex justify-center">
             <input type="hidden" name="itemId" value={item.id} />
             <input type="hidden" name="serviceId" value={serviceId} />
-            <Button
+            <button
               type="submit"
+              name="nextActive"
+              value={item.active ? "false" : "true"}
+              className={cn(
+                "relative inline-flex h-6 w-11 items-center rounded-full border px-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                item.active ? "bg-emerald-500 border-emerald-600" : "bg-muted border-border"
+              )}
+              aria-label={item.active ? `Desactivar ítem ${item.name}` : `Activar ítem ${item.name}`}
+              aria-pressed={item.active}
+            >
+              <span
+                className={cn(
+                  "inline-block h-4 w-4 rounded-full bg-background shadow-sm transition-transform",
+                  item.active ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </form>
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              type="button"
               variant="ghost"
               size="icon"
-              className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              aria-label={`Eliminar ítem ${item.name}`}
+              className="size-8"
+              onClick={onStartEdit}
+              aria-label={`Editar ítem ${item.name}`}
             >
-              <Trash2 className="size-4" aria-hidden />
+              <Pencil className="size-4" aria-hidden />
             </Button>
-          </form>
-        </div>
-      </TableCell>
-    </TableRow>
+            <form action={deleteItem} className="inline">
+              <input type="hidden" name="itemId" value={item.id} />
+              <input type="hidden" name="serviceId" value={serviceId} />
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon"
+                className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                aria-label={`Eliminar ítem ${item.name}`}
+              >
+                <Trash2 className="size-4" aria-hidden />
+              </Button>
+            </form>
+          </div>
+        </TableCell>
+      </TableRow>
   );
 }
 
@@ -201,32 +226,68 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
   const router = useRouter();
 
   return (
-    <li className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors"
-        aria-expanded={open}
-      >
-        <span className="flex shrink-0 text-muted-foreground" aria-hidden>
-          {open ? (
-            <ChevronDown className="size-5" />
-          ) : (
-            <ChevronRight className="size-5" />
-          )}
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="font-medium text-foreground">{service.name}</h2>
-          {service.description ? (
-            <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
-              {service.description}
+    <li className="flex flex-col w-full rounded-xl border border-border bg-card shadow-sm overflow-hidden transition-colors">
+      <div className="flex w-full items-center">
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
+          aria-expanded={open}
+        >
+          <span className="flex shrink-0 text-muted-foreground" aria-hidden>
+            {open ? (
+              <ChevronDown className="size-5" />
+            ) : (
+              <ChevronRight className="size-5" />
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="font-medium text-foreground">{service.name}</h2>
+              {!service.active && (
+                <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
+                  Inactivo
+                </span>
+              )}
+            </div>
+            {service.description ? (
+              <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
+                {service.description}
+              </p>
+            ) : null}
+            <p className="mt-1 text-xs text-muted-foreground">
+              {hasItems ? `${service.items.length} ítem(s)` : "Sin ítems"}
             </p>
-          ) : null}
-          <p className="mt-1 text-xs text-muted-foreground">
-            {hasItems ? `${service.items.length} ítem(s)` : "Sin ítems"}
-          </p>
+          </div>
+        </button>
+        <div
+          className="flex shrink-0 items-center pr-4 py-3"
+          onClick={(e) => e.stopPropagation()}
+          role="presentation"
+        >
+          <form action={toggleServiceActive}>
+            <input type="hidden" name="serviceId" value={service.id} />
+            <button
+              type="submit"
+              name="nextActive"
+              value={service.active ? "false" : "true"}
+              className={cn(
+                "relative inline-flex h-6 w-11 items-center rounded-full border px-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                service.active ? "bg-emerald-500 border-emerald-600" : "bg-muted border-border"
+              )}
+              aria-label={service.active ? "Desactivar servicio" : "Activar servicio"}
+              aria-pressed={service.active}
+            >
+              <span
+                className={cn(
+                  "inline-block h-4 w-4 rounded-full bg-background shadow-sm transition-transform",
+                  service.active ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </form>
         </div>
-      </button>
+      </div>
 
       <div
         className={cn(
@@ -243,6 +304,7 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
                     <TableHead>Nombre</TableHead>
                     <TableHead className="text-right">Precio</TableHead>
                     <TableHead>Tiempo estimado</TableHead>
+                    <TableHead className="w-28 text-center">Estado</TableHead>
                     <TableHead className="w-24 text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>

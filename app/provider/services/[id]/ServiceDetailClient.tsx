@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 type Service = { id: string; name: string; description: string };
-type Item = { id: string; name: string; price: string; estimated_time: string };
+type Item = { id: string; name: string; price: string; estimated_time: string; active: boolean };
 
 export function ServiceDetailClient({
   service,

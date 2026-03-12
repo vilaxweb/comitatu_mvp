@@ -74,6 +74,33 @@ export async function updateService(
   return { success: true };
 }
 
+export async function toggleServiceActive(formData: FormData): Promise<ServiceActionResult> {
+  const serviceId = (formData.get("serviceId") as string)?.trim();
+  const nextActiveRaw = (formData.get("nextActive") as string)?.trim();
+
+  if (!serviceId) return { error: "ID de servicio no válido." };
+  if (nextActiveRaw !== "true" && nextActiveRaw !== "false") {
+    return { error: "Valor de estado no válido." };
+  }
+
+  await getProviderUser();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("services")
+    .update({ active: nextActiveRaw === "true" })
+    .eq("id", serviceId);
+
+  if (error) {
+    return { error: error.message || "Error al actualizar el estado del servicio." };
+  }
+
+  revalidatePath("/provider");
+  revalidatePath("/provider/services");
+  revalidatePath(`/provider/services/${serviceId}`);
+  return { success: true };
+}
+
 export async function deleteService(formData: FormData): Promise<ServiceActionResult> {
   const serviceId = (formData.get("serviceId") as string)?.trim();
   if (!serviceId) return { error: "ID de servicio no válido." };
@@ -184,6 +211,33 @@ export async function deleteItem(formData: FormData): Promise<ItemActionResult> 
   return { success: true };
 }
 
+export async function toggleItemActive(formData: FormData): Promise<ItemActionResult> {
+  const itemId = (formData.get("itemId") as string)?.trim();
+  const serviceId = (formData.get("serviceId") as string)?.trim();
+  const nextActiveRaw = (formData.get("nextActive") as string)?.trim();
+
+  if (!itemId) return { error: "ID de ítem no válido." };
+  if (nextActiveRaw !== "true" && nextActiveRaw !== "false") {
+    return { error: "Valor de estado no válido." };
+  }
+
+  await getProviderUser();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("items")
+    .update({ active: nextActiveRaw === "true" })
+    .eq("id", itemId);
+
+  if (error) {
+    return { error: error.message || "Error al actualizar el estado del ítem." };
+  }
+
+  if (serviceId) revalidatePath(`/provider/services/${serviceId}`);
+  revalidatePath("/provider/services");
+  return { success: true };
+}
+
 // --- Provider details (datos para facturación / pagos) ---
 
 export type ProviderDetailsRow = {
@@ -196,6 +250,7 @@ export type ProviderDetailsRow = {
   direccion: string | null;
   telefono: string | null;
   email_facturacion: string | null;
+  iban: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -233,6 +288,7 @@ export async function upsertProviderDetails(
     direccion: (formData.get("direccion") as string)?.trim() || null,
     telefono: (formData.get("telefono") as string)?.trim() || null,
     email_facturacion: (formData.get("email_facturacion") as string)?.trim() || null,
+    iban: (formData.get("iban") as string)?.trim() || null,
   };
 
   const { error } = await supabase.from("provider_details").upsert(payload, {

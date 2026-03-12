@@ -14,7 +14,8 @@ type ServiceRow = {
   name: string;
   description: string | null;
   created_at: string;
-  items: { id: string; name: string; price: string; estimated_time: string }[];
+  active: boolean;
+  items: { id: string; name: string; price: string; estimated_time: string; active: boolean }[];
 };
 
 export default async function ProviderServicesPage() {
@@ -29,7 +30,8 @@ export default async function ProviderServicesPage() {
       name,
       description,
       created_at,
-      items ( id, name, price, estimated_time )
+      active,
+      items ( id, name, price, estimated_time, active )
     `
     )
     .eq("user_id", userId)

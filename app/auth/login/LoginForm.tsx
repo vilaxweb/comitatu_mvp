@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-export function LoginForm() {
+export function LoginForm({ nextPath }: { nextPath?: string }) {
   const [state, formAction] = useActionState<AuthResult | null, FormData>(
     async (_prev, formData) => login(formData),
     null
@@ -19,6 +19,7 @@ export function LoginForm() {
       </CardHeader>
       <CardContent className="space-y-4">
         <form action={formAction} className="space-y-4">
+          {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
           <div className="space-y-2">
             <label htmlFor="email_or_username" className="text-sm font-medium text-foreground">
               Email o nombre de usuario

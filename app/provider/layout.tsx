@@ -1,4 +1,7 @@
+import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 import { getProviderUser } from "@/lib/auth/get-provider-user";
+import { createClient } from "@/lib/supabase/server";
 import { ProviderSidebar } from "./ProviderSidebar";
 
 export const metadata = {
@@ -11,12 +14,46 @@ export default async function ProviderLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await getProviderUser();
+  const { id: userId } = await getProviderUser();
+  const supabase = await createClient();
+  const { data: details } = await supabase
+    .from("provider_details")
+    .select("nombre, nombre_empresa, direccion, telefono, email_facturacion, iban")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const billingIncomplete =
+    !details ||
+    !details.nombre ||
+    !details.nombre_empresa ||
+    !details.direccion ||
+    !details.telefono ||
+    !details.email_facturacion ||
+    !details.iban;
 
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <ProviderSidebar />
-      <main className="flex-1 px-4 py-6 md:px-6 md:py-8">{children}</main>
+      <main className="relative flex-1 px-4 py-6 pb-28 md:px-6 md:py-8 md:pb-28">
+        {children}
+        {billingIncomplete && (
+          <div className="pointer-events-none fixed left-0 right-0 md:left-56 bottom-8 z-20 text-sm">
+            <div className="pointer-events-auto mx-auto max-w-2xl rounded-md border border-amber-500 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm dark:border-amber-400 dark:bg-amber-950/60 dark:text-amber-100">
+              <div className="flex flex-wrap items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+                <p className="min-w-0 flex-1">
+                  Tu cuenta de proveedor no estará operativa ni podrá recibir pagos hasta que completes tus datos de facturación.
+                </p>
+                <Link
+                  href="/provider/details"
+                  className="text-xs font-medium text-amber-900 underline underline-offset-4 hover:text-amber-700 dark:text-amber-100 dark:hover:text-amber-300"
+                >
+                  Completar configuración de la cuenta
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

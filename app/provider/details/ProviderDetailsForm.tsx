@@ -21,7 +21,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
       <CardHeader className="pb-4">
         <h2 className="text-lg font-medium text-card-foreground">Datos para facturación</h2>
         <p className="text-sm text-muted-foreground">
-          Nombre, empresa, DNI/CIF, dirección y email de facturación.
+          Nombre, empresa, DNI/CIF, dirección, email de facturación e IBAN para pagos.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -125,6 +125,23 @@ export function ProviderDetailsForm({ initialData }: Props) {
                 className="w-full"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="iban" className="text-sm font-medium text-foreground">
+              IBAN para pagos
+            </label>
+            <Input
+              id="iban"
+              name="iban"
+              type="text"
+              placeholder="ES00 0000 0000 00 0000000000"
+              defaultValue={initialData?.iban ?? ""}
+              className="w-full uppercase tracking-wide"
+            />
+            <p className="text-xs text-muted-foreground">
+              Añade la cuenta bancaria donde quieres recibir los pagos de tus servicios.
+            </p>
           </div>
 
           {state && "error" in state ? (

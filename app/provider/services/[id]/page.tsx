@@ -14,6 +14,7 @@ type ItemRow = {
   name: string;
   price: string;
   estimated_time: string;
+  active: boolean;
 };
 
 type ServiceRow = {
@@ -21,6 +22,7 @@ type ServiceRow = {
   name: string;
   description: string | null;
   user_id: string;
+  active: boolean;
   items: ItemRow[];
 };
 
@@ -41,7 +43,8 @@ export default async function ProviderServiceDetailPage({
       name,
       description,
       user_id,
-      items ( id, name, price, estimated_time )
+      active,
+      items ( id, name, price, estimated_time, active )
     `
     )
     .eq("id", serviceId)

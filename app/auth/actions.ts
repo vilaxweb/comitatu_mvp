@@ -47,6 +47,10 @@ export async function register(formData: FormData): Promise<AuthResult> {
     return { error: error.message || "Error al registrar. Inténtalo de nuevo." };
   }
 
+  if (userType === "provider") {
+    redirect("/auth/login?next=/provider/details");
+  }
+
   redirect("/auth/login");
 }
 
@@ -71,6 +75,7 @@ async function resolveEmail(supabase: Awaited<ReturnType<typeof createClient>>, 
 export async function login(formData: FormData): Promise<AuthResult> {
   const emailOrUsername = (formData.get("email_or_username") as string)?.trim();
   const password = formData.get("password") as string;
+  const next = (formData.get("next") as string | null) ?? null;
 
   if (!emailOrUsername) {
     return { error: "El correo o nombre de usuario es obligatorio." };
@@ -101,6 +106,9 @@ export async function login(formData: FormData): Promise<AuthResult> {
       .select("user_type")
       .eq("id", userId)
       .single();
+    if (next) {
+      redirect(next);
+    }
     if (profile?.user_type === "provider") {
       redirect("/provider");
     }
