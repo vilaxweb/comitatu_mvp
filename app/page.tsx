@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: { error?: string };
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { error: queryError } = await searchParams;
+  const { error: queryError } = searchParams;
 
   if (user) {
     const { data: profile } = await supabase

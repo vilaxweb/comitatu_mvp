@@ -14,6 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { formatPrice } from "@/lib/formatPrice";
+
+type VoidFormAction = (formData: FormData) => void | Promise<void>;
 
 type Service = { id: string; name: string; description: string };
 type Item = { id: string; name: string; price: string; estimated_time: string; active: boolean };
@@ -34,7 +37,7 @@ export function ServiceDetailClient({
         <CardContent className="space-y-4">
           <EditServiceForm service={service} />
           <div className="border-t border-border pt-4">
-            <form action={deleteService}>
+            <form action={deleteService as unknown as VoidFormAction}>
               <input type="hidden" name="serviceId" value={service.id} />
               <Button
                 type="submit"
@@ -80,7 +83,7 @@ export function ServiceDetailClient({
                     {formatPrice(item.price)} · {item.estimated_time}
                   </span>
                 </div>
-                <form action={deleteItem}>
+                <form action={deleteItem as unknown as VoidFormAction}>
                   <input type="hidden" name="itemId" value={item.id} />
                   <input type="hidden" name="serviceId" value={service.id} />
                   <Button
@@ -106,15 +109,6 @@ export function ServiceDetailClient({
       </p>
     </div>
   );
-}
-
-function formatPrice(price: string): string {
-  const n = Number(price);
-  if (Number.isNaN(n)) return price;
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-  }).format(n);
 }
 
 function EditServiceForm({ service }: { service: Service }) {

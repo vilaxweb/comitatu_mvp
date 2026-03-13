@@ -11,6 +11,39 @@ export type ServiceActionResult =
 
 export type ItemActionResult = { error: string } | { success: true };
 
+type ItemValidationResult =
+  | { ok: false; error: string }
+  | { ok: true; name: string; price: number; estimatedTime: string };
+
+function validateItemForm(formData: FormData): ItemValidationResult {
+  const name = (formData.get("name") as string)?.trim();
+  const priceRaw = (formData.get("price") as string)?.trim();
+  const estimatedTime = (formData.get("estimated_time") as string)?.trim();
+
+  if (!name) {
+    return { ok: false, error: "El nombre del ítem es obligatorio." };
+  }
+  if (!priceRaw) {
+    return { ok: false, error: "El precio es obligatorio." };
+  }
+
+  const price = Number(priceRaw);
+  if (Number.isNaN(price) || price < 0) {
+    return { ok: false, error: "Introduce un precio numérico válido." };
+  }
+
+  if (!estimatedTime) {
+    return { ok: false, error: "El tiempo estimado es obligatorio." };
+  }
+
+  return {
+    ok: true,
+    name,
+    price,
+    estimatedTime,
+  };
+}
+
 export async function createService(formData: FormData): Promise<ServiceActionResult> {
   const name = (formData.get("name") as string)?.trim();
   const description = (formData.get("description") as string)?.trim() || null;
@@ -123,32 +156,17 @@ export async function createItem(
   serviceId: string,
   formData: FormData
 ): Promise<ItemActionResult> {
-  const name = (formData.get("name") as string)?.trim();
-  const priceRaw = (formData.get("price") as string)?.trim();
-  const estimatedTime = (formData.get("estimated_time") as string)?.trim();
-
-  if (!name) {
-    return { error: "El nombre del ítem es obligatorio." };
-  }
-  if (!priceRaw) {
-    return { error: "El precio es obligatorio." };
-  }
-  const price = Number(priceRaw);
-  if (Number.isNaN(price) || price < 0) {
-    return { error: "Introduce un precio numérico válido." };
-  }
-  if (!estimatedTime) {
-    return { error: "El tiempo estimado es obligatorio." };
-  }
+  const validated = validateItemForm(formData);
+  if (!validated.ok) return { error: validated.error };
 
   await getProviderUser();
   const supabase = await createClient();
 
   const { error } = await supabase.from("items").insert({
     service_id: serviceId,
-    name,
-    price,
-    estimated_time: estimatedTime,
+    name: validated.name,
+    price: validated.price,
+    estimated_time: validated.estimatedTime,
   });
 
   if (error) {
@@ -163,24 +181,23 @@ export async function createItem(
 export async function updateItem(formData: FormData): Promise<ItemActionResult> {
   const itemId = (formData.get("itemId") as string)?.trim();
   const serviceId = (formData.get("serviceId") as string)?.trim();
-  const name = (formData.get("name") as string)?.trim();
-  const priceRaw = (formData.get("price") as string)?.trim();
-  const estimatedTime = (formData.get("estimated_time") as string)?.trim();
 
   if (!itemId) return { error: "ID de ítem no válido." };
   if (!serviceId) return { error: "ID de servicio no válido." };
-  if (!name) return { error: "El nombre del ítem es obligatorio." };
-  if (!priceRaw) return { error: "El precio es obligatorio." };
-  const price = Number(priceRaw);
-  if (Number.isNaN(price) || price < 0) return { error: "Introduce un precio numérico válido." };
-  if (!estimatedTime) return { error: "El tiempo estimado es obligatorio." };
+
+  const validated = validateItemForm(formData);
+  if (!validated.ok) return { error: validated.error };
 
   await getProviderUser();
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("items")
-    .update({ name, price, estimated_time: estimatedTime })
+    .update({
+      name: validated.name,
+      price: validated.price,
+      estimated_time: validated.estimatedTime,
+    })
     .eq("id", itemId);
 
   if (error) {

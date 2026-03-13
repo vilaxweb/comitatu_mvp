@@ -4,6 +4,30 @@ import { getProviderUser } from "@/lib/auth/get-provider-user";
 import { createClient } from "@/lib/supabase/server";
 import { ProviderSidebar } from "./ProviderSidebar";
 
+type ProviderDetailsForBilling = {
+  nombre: string | null;
+  nombre_empresa: string | null;
+  direccion: string | null;
+  telefono: string | null;
+  email_facturacion: string | null;
+  iban: string | null;
+} | null;
+
+function isBillingIncomplete(details: ProviderDetailsForBilling): boolean {
+  if (!details) return true;
+
+  const requiredFields: (keyof NonNullable<ProviderDetailsForBilling>)[] = [
+    "nombre",
+    "nombre_empresa",
+    "direccion",
+    "telefono",
+    "email_facturacion",
+    "iban",
+  ];
+
+  return requiredFields.some((field) => !details[field]);
+}
+
 export const metadata = {
   title: "Panel de proveedores",
   description: "Gestiona tus servicios e ítems",
@@ -21,14 +45,7 @@ export default async function ProviderLayout({
     .select("nombre, nombre_empresa, direccion, telefono, email_facturacion, iban")
     .eq("user_id", userId)
     .maybeSingle();
-  const billingIncomplete =
-    !details ||
-    !details.nombre ||
-    !details.nombre_empresa ||
-    !details.direccion ||
-    !details.telefono ||
-    !details.email_facturacion ||
-    !details.iban;
+  const billingIncomplete = isBillingIncomplete(details);
 
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">

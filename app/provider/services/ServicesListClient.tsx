@@ -16,6 +16,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/formatPrice";
+
+type VoidFormAction = (formData: FormData) => void | Promise<void>;
 
 export type ServiceWithItems = {
   id: string;
@@ -25,15 +28,6 @@ export type ServiceWithItems = {
   active: boolean;
   items: { id: string; name: string; price: string; estimated_time: string; active: boolean }[];
 };
-
-function formatPrice(price: string): string {
-  const n = Number(price);
-  if (Number.isNaN(n)) return price;
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-  }).format(n);
-}
 
 type Item = { id: string; name: string; price: string; estimated_time: string; active: boolean };
 
@@ -155,7 +149,7 @@ function ItemRow({
           {item.estimated_time}
         </TableCell>
         <TableCell className="text-center">
-          <form action={toggleItemActive} className="inline-flex justify-center">
+          <form action={toggleItemActive as unknown as VoidFormAction} className="inline-flex justify-center">
             <input type="hidden" name="itemId" value={item.id} />
             <input type="hidden" name="serviceId" value={serviceId} />
             <button
@@ -190,7 +184,7 @@ function ItemRow({
             >
               <Pencil className="size-4" aria-hidden />
             </Button>
-            <form action={deleteItem} className="inline">
+            <form action={deleteItem as unknown as VoidFormAction} className="inline">
               <input type="hidden" name="itemId" value={item.id} />
               <input type="hidden" name="serviceId" value={serviceId} />
               <Button
@@ -265,7 +259,7 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
           onClick={(e) => e.stopPropagation()}
           role="presentation"
         >
-          <form action={toggleServiceActive}>
+          <form action={toggleServiceActive as unknown as VoidFormAction}>
             <input type="hidden" name="serviceId" value={service.id} />
             <button
               type="submit"
@@ -339,7 +333,7 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
                 Editar servicio
               </Link>
             </Button>
-            <form action={deleteService} className="inline">
+            <form action={deleteService as unknown as VoidFormAction} className="inline">
               <input type="hidden" name="serviceId" value={service.id} />
               <Button
                 type="submit"
