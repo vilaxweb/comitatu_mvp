@@ -124,37 +124,21 @@ export async function getUsersForAdmin(): Promise<AdminUserSummary[]> {
 
   const { data, error } = await supabase
     .from("users")
-    .select(
-      `
-      id,
-      email,
-      username,
-      user_type,
-      status,
-      services:services!users_id_fkey(count)
-    `,
-    )
+    .select("id, email, username, user_type, status")
     .order("created_at", { ascending: false });
 
   if (error || !data) {
     return [];
   }
 
-  // supabase devuelve "services" como array con count; adaptamos a services_count
   return (data as any[]).map((row) => {
-    const servicesRelation = row.services as { count: number }[] | null;
-    const servicesCount =
-      servicesRelation && servicesRelation.length > 0
-        ? servicesRelation[0].count
-        : 0;
-
     return {
       id: row.id as string,
       email: row.email as string | null,
       username: row.username as string,
       user_type: row.user_type as "customer" | "provider" | "admin",
       status: row.status as "active" | "inactive",
-      services_count: servicesCount,
+      services_count: null,
     };
   });
 }
