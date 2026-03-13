@@ -16,9 +16,12 @@ export default async function HomePage({
   if (user) {
     const { data: profile } = await supabase
       .from("users")
-      .select("user_type")
+      .select("user_type, status")
       .eq("id", user.id)
       .single();
+    if (profile?.user_type === "admin" && profile.status === "active") {
+      redirect("/admin");
+    }
     if (profile?.user_type === "provider") {
       redirect("/provider");
     }

@@ -7,7 +7,8 @@
 | **id**       | UUID de Supabase Auth (`auth.users.id`). Lo rellena el trigger. |
 | **email**     | Del formulario de registro; se guarda también en Auth. Lo rellena el trigger. |
 | **password_hash** | No se usa desde la app. Supabase Auth guarda el hash en `auth.users`. Dejar **NULL** en esta tabla. |
-| **user_type**| Valor por defecto `'user'` en el trigger. Opcionalmente se puede pasar en el futuro desde el formulario. |
+| **user_type**| Tipo de usuario: `'customer'`, `'provider'` o `'admin'`. Se rellena desde `raw_user_meta_data.user_type` o por defecto `'customer'`. |
+| **status**   | Estado del usuario: `'active'` o `'inactive'`. Se rellena desde `raw_user_meta_data.status` o por defecto `'active'`. |
 | **created_at** | Rellenado por el trigger con `now()`. |
 | **updated_at** | Rellenado por el trigger con `now()`. |
 | **username** | Del formulario de registro; se envía en `user_metadata` y el trigger lo guarda aquí. |
@@ -15,9 +16,9 @@
 ## Cómo se rellenan
 
 1. **Registro**: el usuario introduce **username**, **email** y **contraseña** en `/auth/register`.
-2. La app llama a `supabase.auth.signUp({ email, password, options: { data: { username } } })`.
+2. La app llama a `supabase.auth.signUp({ email, password, options: { data: { username, user_type } } })`. Para admins, además se puede pasar `status`.
 3. Supabase crea el usuario en `auth.users` (el hash de la contraseña queda solo ahí).
-4. El **trigger** `on_auth_user_created` inserta una fila en `public.users` con `id`, `email`, `username`, `user_type`, `created_at` y `updated_at`.
+4. El **trigger** `on_auth_user_created` inserta una fila en `public.users` con `id`, `email`, `username`, `user_type`, `status`, `created_at` y `updated_at`.
 
 ## Aplicar el trigger en Supabase
 

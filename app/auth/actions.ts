@@ -90,7 +90,10 @@ export async function login(formData: FormData): Promise<AuthResult> {
     return { error: "Email o contraseña incorrectos." };
   }
 
-  const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error) {
     if (error.message.includes("Invalid login") || error.message.includes("invalid")) {
@@ -103,12 +106,18 @@ export async function login(formData: FormData): Promise<AuthResult> {
   if (userId) {
     const { data: profile } = await supabase
       .from("users")
-      .select("user_type")
+      .select("user_type, status")
       .eq("id", userId)
       .single();
+
     if (next) {
       redirect(next);
     }
+
+    if (profile?.user_type === "admin" && profile.status === "active") {
+      redirect("/admin");
+    }
+
     if (profile?.user_type === "provider") {
       redirect("/provider");
     }
