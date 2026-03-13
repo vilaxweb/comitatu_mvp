@@ -6,6 +6,15 @@ const MIN_PASSWORD_LENGTH = 6;
 
 export type AdminCreateResult = { error: string } | { success: true };
 
+export type AdminUserSummary = {
+  id: string;
+  email: string | null;
+  username: string;
+  user_type: "customer" | "provider" | "admin";
+  status: "active" | "inactive";
+  services_count: number | null;
+};
+
 export async function createAdminUser(
   formData: FormData,
 ): Promise<AdminCreateResult> {
@@ -85,4 +94,111 @@ export async function createAdminUser(
 
   return { success: true };
 }
+
+export type AdminUpdateResult = { error: string } | { success: true };
+
+export async function getUsersForAdmin(): Promise<AdminUserSummary[]> {
+  const supabase = await createClient();
+
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser();
+
+  if (!currentUser) {
+    return [];
+  }
+
+  const { data: currentProfile } = await supabase
+    .from("users")
+    .select("user_type, status")
+    .eq("id", currentUser.id)
+    .single();
+
+  if (
+    !currentProfile ||
+    currentProfile.user_type !== "admin" ||
+    currentProfile.status !== "active"
+  ) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .select(
+      `
+      id,
+      email,
+      username,
+      user_type,
+      status,
+      services:services!users_id_fkey(count)
+    `,
+    )
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return [];
+  }
+
+  // supabase devuelve "services" como array con count; adaptamos a services_count
+  return (data as any[]).map((row) => {
+    const servicesRelation = row.services as { count: number }[] | null;
+    const servicesCount =
+      servicesRelation && servicesRelation.length > 0
+        ? servicesRelation[0].count
+        : 0;
+
+    return {
+      id: row.id as string,
+      email: row.email as string | null,
+      username: row.username as string,
+      user_type: row.user_type as "customer" | "provider" | "admin",
+      status: row.status as "active" | "inactive",
+      services_count: servicesCount,
+    };
+  });
+}
+
+export async function updateUserFromAdmin(
+  user: AdminUserSummary,
+): Promise<AdminUpdateResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser();
+
+  if (!currentUser) {
+    return { error: "No hay sesión activa." };
+  }
+
+  const { data: currentProfile } = await supabase
+    .from("users")
+    .select("user_type, status")
+    .eq("id", currentUser.id)
+    .single();
+
+  if (
+    !currentProfile ||
+    currentProfile.user_type !== "admin" ||
+    currentProfile.status !== "active"
+  ) {
+    return { error: "No tienes permisos para editar usuarios." };
+  }
+
+  const { error } = await supabase
+    .from("users")
+    .update({
+      user_type: user.user_type,
+      status: user.status,
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    return { error: error.message || "No se pudo actualizar el usuario." };
+  }
+
+  return { success: true };
+}
+
 
