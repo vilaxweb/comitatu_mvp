@@ -1,6 +1,8 @@
-import { listServiceCategories, createServiceCategory, updateServiceCategory, deleteServiceCategory } from "../actions";
+import { listServiceCategories, createServiceCategory, updateServiceCategory } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CategoriesClient } from "./CategoriesClient";
+import type { ServiceCategory } from "./types";
 
 export const metadata = {
   title: "Categorías de servicios",
@@ -41,52 +43,18 @@ export default async function AdminServiceCategoriesPage() {
         {categories.length === 0 ? (
           <p className="text-sm text-muted-foreground">Todavía no hay categorías creadas.</p>
         ) : (
-          <ul className="space-y-2">
-            {categories.map((category) => (
-              <li
-                key={category.id}
-                className="flex flex-col gap-2 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <form
-                  action={async (formData) => {
-                    "use server";
-                    const name = formData.get("name") as string;
-                    const description = (formData.get("description") as string) || undefined;
-                    if (!name?.trim()) return;
-                    await updateServiceCategory(category.id, { name: name.trim(), description });
-                  }}
-                  className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3"
-                >
-                  <Input
-                    name="name"
-                    defaultValue={category.name}
-                    className="sm:max-w-xs"
-                    aria-label="Nombre de la categoría"
-                    required
-                  />
-                  <Input
-                    name="description"
-                    defaultValue={category.description ?? ""}
-                    placeholder="Descripción (opcional)"
-                    aria-label="Descripción de la categoría"
-                  />
-                  <Button type="submit" size="sm" className="sm:self-stretch">
-                    Guardar
-                  </Button>
-                </form>
-                <form
-                  action={async () => {
-                    "use server";
-                    await deleteServiceCategory(category.id);
-                  }}
-                >
-                  <Button type="submit" size="sm" variant="outline" className="text-destructive border-destructive/40">
-                    Eliminar
-                  </Button>
-                </form>
-              </li>
-            ))}
-          </ul>
+          <CategoriesClient
+            initialCategories={categories as ServiceCategory[]}
+            onSave={async (updatedCategories) => {
+              "use server";
+              for (const category of updatedCategories) {
+                await updateServiceCategory(category.id, {
+                  name: category.name.trim(),
+                  description: category.description || undefined,
+                });
+              }
+            }}
+          />
         )}
       </section>
     </div>

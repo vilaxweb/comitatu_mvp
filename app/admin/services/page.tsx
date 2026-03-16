@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export const metadata = {
   title: "Catálogo de Servicios",
@@ -6,7 +7,12 @@ export const metadata = {
 
 export default function AdminServicesHomePage() {
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
       <div>
         <h2 className="text-xl font-semibold text-foreground">Catálogo de Servicios</h2>
         <p className="text-sm text-muted-foreground">
@@ -35,7 +41,7 @@ export default function AdminServicesHomePage() {
           </p>
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

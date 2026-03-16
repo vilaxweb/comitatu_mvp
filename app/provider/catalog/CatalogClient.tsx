@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { ProviderServiceForm } from "./ProviderServiceForm";
 import type { ServiceCategoryWithPredefined, ProviderServiceRow } from "./actions";
-import { useState } from "react";
+import { UnsavedChangesBar } from "@/components/unsaved-changes-bar";
 
 type CatalogClientProps = {
   categories: ServiceCategoryWithPredefined[];
@@ -10,31 +11,29 @@ type CatalogClientProps = {
 };
 
 export function CatalogClient({ categories, providerServices }: CatalogClientProps) {
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [pendingSave, setPendingSave] = useState<(() => void) | null>(null);
+  const [dirtyServices, setDirtyServices] = useState<Record<string, () => void>>({});
+  const [resetToken, setResetToken] = useState(0);
+
+  const hasUnsavedChanges = Object.keys(dirtyServices).length > 0;
 
   const byPredefinedId = new Map<string, ProviderServiceRow>(
     providerServices.map((ps) => [ps.predefined_service_id, ps]),
   );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      {hasUnsavedChanges && (
-        <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm">
-          <span className="font-medium">Tienes cambios sin guardar</span>
-          <button
-            type="button"
-            className="inline-flex items-center rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-            onClick={() => {
-              if (pendingSave) {
-                pendingSave();
-              }
-            }}
-          >
-            Guardar cambios
-          </button>
-        </div>
-      )}
+    <div className="mx-auto max-w-3xl space-y-4 pt-16">
+      <UnsavedChangesBar
+        hasUnsavedChanges={hasUnsavedChanges}
+        onSave={() => {
+          const saves = Object.values(dirtyServices);
+          saves.forEach((save) => save());
+          setDirtyServices({});
+        }}
+        onCancel={() => {
+          setDirtyServices({});
+          setResetToken((token) => token + 1);
+        }}
+      />
 
       <div className="space-y-2">
         <h1 className="text-xl font-semibold text-foreground">Servicios del catálogo</h1>
@@ -90,12 +89,20 @@ export function CatalogClient({ categories, providerServices }: CatalogClientPro
                             ) : null}
                           </div>
                           <ProviderServiceForm
+                            key={`${service.id}-${resetToken}`}
                             predefinedServiceId={service.id}
                             initialPrice={providerService?.price ?? null}
                             initialDuration={providerService?.duration ?? null}
                             onDirtyChange={(dirty, save) => {
-                              setHasUnsavedChanges(dirty);
-                              setPendingSave(dirty ? save : null);
+                              setDirtyServices((prev) => {
+                                const next = { ...prev };
+                                if (dirty) {
+                                  next[service.id] = save;
+                                } else {
+                                  delete next[service.id];
+                                }
+                                return next;
+                              });
                             }}
                           />
                         </div>
