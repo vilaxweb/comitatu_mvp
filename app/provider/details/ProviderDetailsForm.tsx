@@ -5,6 +5,7 @@ import { upsertProviderDetails, type ProviderDetailsRow, type ProviderDetailsAct
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 type Props = {
   initialData: ProviderDetailsRow | null;
@@ -28,9 +29,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
         <form action={formAction} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="nombre" className="text-sm font-medium text-foreground">
-                Nombre / contacto
-              </label>
+              <Label htmlFor="nombre">Nombre / contacto</Label>
               <Input
                 id="nombre"
                 name="nombre"
@@ -41,9 +40,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="nombre_empresa" className="text-sm font-medium text-foreground">
-                Nombre de la empresa
-              </label>
+              <Label htmlFor="nombre_empresa">Nombre de la empresa</Label>
               <Input
                 id="nombre_empresa"
                 name="nombre_empresa"
@@ -57,9 +54,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="dni" className="text-sm font-medium text-foreground">
-                DNI
-              </label>
+              <Label htmlFor="dni">DNI</Label>
               <Input
                 id="dni"
                 name="dni"
@@ -70,9 +65,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="cif" className="text-sm font-medium text-foreground">
-                CIF
-              </label>
+              <Label htmlFor="cif">CIF</Label>
               <Input
                 id="cif"
                 name="cif"
@@ -85,9 +78,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="direccion" className="text-sm font-medium text-foreground">
-              Dirección
-            </label>
+            <Label htmlFor="direccion">Dirección</Label>
             <Input
               id="direccion"
               name="direccion"
@@ -100,9 +91,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="telefono" className="text-sm font-medium text-foreground">
-                Teléfono
-              </label>
+              <Label htmlFor="telefono">Teléfono</Label>
               <Input
                 id="telefono"
                 name="telefono"
@@ -113,9 +102,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="email_facturacion" className="text-sm font-medium text-foreground">
-                Email facturación
-              </label>
+              <Label htmlFor="email_facturacion">Email facturación</Label>
               <Input
                 id="email_facturacion"
                 name="email_facturacion"
@@ -128,9 +115,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="iban" className="text-sm font-medium text-foreground">
-              IBAN para pagos
-            </label>
+            <Label htmlFor="iban">IBAN para pagos</Label>
             <Input
               id="iban"
               name="iban"

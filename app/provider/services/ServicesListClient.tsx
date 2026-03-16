@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, Pencil, Trash2, Check, X } from "lucide-reac
 import { deleteService, deleteItem, updateItem, toggleServiceActive, toggleItemActive } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -72,9 +73,9 @@ function ItemRow({
             <input type="hidden" name="itemId" value={item.id} />
             <input type="hidden" name="serviceId" value={serviceId} />
             <div className="flex flex-col gap-1">
-              <label htmlFor={`item-name-${item.id}`} className="text-xs font-medium text-muted-foreground">
+              <Label htmlFor={`item-name-${item.id}`} className="text-xs font-medium text-muted-foreground">
                 Nombre
-              </label>
+              </Label>
               <Input
                 id={`item-name-${item.id}`}
                 name="name"
@@ -84,9 +85,9 @@ function ItemRow({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label htmlFor={`item-price-${item.id}`} className="text-xs font-medium text-muted-foreground">
+              <Label htmlFor={`item-price-${item.id}`} className="text-xs font-medium text-muted-foreground">
                 Precio
-              </label>
+              </Label>
               <Input
                 id={`item-price-${item.id}`}
                 name="price"
@@ -99,9 +100,9 @@ function ItemRow({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label htmlFor={`item-time-${item.id}`} className="text-xs font-medium text-muted-foreground">
+              <Label htmlFor={`item-time-${item.id}`} className="text-xs font-medium text-muted-foreground">
                 Tiempo
-              </label>
+              </Label>
               <Input
                 id={`item-time-${item.id}`}
                 name="estimated_time"

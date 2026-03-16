@@ -3,6 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { getProviderUser } from "@/lib/auth/get-provider-user";
 import { createClient } from "@/lib/supabase/server";
 import { ProviderSidebar } from "./ProviderSidebar";
+import { ProviderTopbar } from "./ProviderTopbar";
 
 type ProviderDetailsForBilling = {
   nombre: string | null;
@@ -50,8 +51,9 @@ export default async function ProviderLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <ProviderSidebar />
-      <main className="relative flex-1 px-4 py-6 pb-28 md:px-6 md:py-8 md:pb-28">
-        {children}
+      <main className="relative flex-1 px-4 pb-28 md:px-6 md:pb-28">
+        <ProviderTopbar />
+        <div className="mx-auto max-w-5xl py-6 md:py-8">{children}</div>
         {billingIncomplete && (
           <div className="pointer-events-none fixed left-0 right-0 md:left-56 bottom-8 z-20 text-sm">
             <div className="pointer-events-auto mx-auto max-w-2xl rounded-md border border-amber-500 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm dark:border-amber-400 dark:bg-amber-950/60 dark:text-amber-100">

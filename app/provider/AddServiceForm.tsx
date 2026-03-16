@@ -6,6 +6,8 @@ import { createService, type ServiceActionResult } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export function AddServiceForm() {
   const router = useRouter();
@@ -29,9 +31,9 @@ export function AddServiceForm() {
       <CardContent className="space-y-4">
         <form action={formAction} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-foreground">
+            <Label htmlFor="name">
               Nombre del Servicio <span className="text-destructive">*</span>
-            </label>
+            </Label>
             <Input
               id="name"
               name="name"
@@ -42,15 +44,12 @@ export function AddServiceForm() {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium text-foreground">
-              Descripción del Servicio (opcional)
-            </label>
-            <textarea
+            <Label htmlFor="description">Descripción del Servicio (opcional)</Label>
+            <Textarea
               id="description"
               name="description"
-              rows={3}
               placeholder="Breve descripción del servicio"
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              rows={3}
             />
           </div>
           {state && "error" in state ? (

@@ -4,6 +4,14 @@ import { useActionState } from "react";
 import { createAdminUser, type AdminCreateResult } from "../actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function CreateAdminForm() {
   const [state, formAction] = useActionState<AdminCreateResult | null, FormData>(
@@ -14,12 +22,9 @@ export function CreateAdminForm() {
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <label
-          htmlFor="username"
-          className="text-sm font-medium text-foreground"
-        >
+        <Label htmlFor="username" className="text-sm font-medium text-foreground">
           Nombre de usuario
-        </label>
+        </Label>
         <Input
           id="username"
           name="username"
@@ -29,9 +34,9 @@ export function CreateAdminForm() {
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-foreground">
+        <Label htmlFor="email" className="text-sm font-medium text-foreground">
           Email
-        </label>
+        </Label>
         <Input
           id="email"
           name="email"
@@ -41,12 +46,9 @@ export function CreateAdminForm() {
         />
       </div>
       <div className="space-y-2">
-        <label
-          htmlFor="password"
-          className="text-sm font-medium text-foreground"
-        >
+        <Label htmlFor="password" className="text-sm font-medium text-foreground">
           Contraseña (mín. 6 caracteres)
-        </label>
+        </Label>
         <Input
           id="password"
           name="password"
@@ -57,18 +59,18 @@ export function CreateAdminForm() {
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="status" className="text-sm font-medium text-foreground">
+        <Label htmlFor="status" className="text-sm font-medium text-foreground">
           Estado
-        </label>
-        <select
-          id="status"
-          name="status"
-          className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
-          defaultValue="active"
-        >
-          <option value="active">Activo</option>
-          <option value="inactive">Inactivo</option>
-        </select>
+        </Label>
+        <Select name="status" defaultValue="active" required>
+          <SelectTrigger id="status" className="w-full">
+            <SelectValue placeholder="Selecciona el estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Activo</SelectItem>
+            <SelectItem value="inactive">Inactivo</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {state && "error" in state ? (

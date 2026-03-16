@@ -1,6 +1,7 @@
-"use client";
+ "use client";
 
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+ import * as React from "react";
+ import { Area, AreaChart, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 import {
   Tooltip,
   TooltipContent,
@@ -8,6 +9,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 
 type GrowthSeriesProps = {
   title: string;
@@ -31,6 +38,14 @@ function buildChartData(series: number[], total: number) {
 
 function GrowthCard({ title, description, total, data }: GrowthSeriesProps) {
   const chartData = buildChartData(data, total);
+  const gradientId = React.useId().replace(/:/g, "");
+
+  const chartConfig: ChartConfig = {
+    value: {
+      label: title,
+      color: "#f97316",
+    },
+  };
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -54,26 +69,40 @@ function GrowthCard({ title, description, total, data }: GrowthSeriesProps) {
         </div>
         <div className="mt-2 flex items-end justify-between gap-2">
           <p className="text-2xl font-semibold text-foreground">{total}</p>
-          <div className="h-10 w-20">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chartData}
-                margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
-              >
-                <XAxis dataKey="label" hide />
-                <YAxis hide domain={[0, "dataMax + 1"]} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#f97316"
-                  strokeWidth={1.5}
-                  dot={false}
-                  activeDot={{ r: 3 }}
-                  isAnimationActive={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartContainer config={chartConfig} className="h-14 w-24">
+            <AreaChart
+              data={chartData}
+              margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
+            >
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#f97316" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="label" hide />
+              <YAxis hide domain={[0, "dataMax + 1"]} />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    hideLabel
+                    indicator="line"
+                    labelKey="label"
+                  />
+                }
+              />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#f97316"
+                fill={`url(#${gradientId})`}
+                strokeWidth={1.5}
+                fillOpacity={0.2}
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ChartContainer>
         </div>
       </div>
     </TooltipProvider>

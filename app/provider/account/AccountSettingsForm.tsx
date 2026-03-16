@@ -6,6 +6,7 @@ import { updateProfile, updatePassword, deleteAccount } from "@/app/auth/profile
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,9 +29,7 @@ function PasswordFields() {
   return (
     <>
       <div className="space-y-2">
-        <label htmlFor="new_password" className="text-sm font-medium text-foreground">
-          Nueva contraseña
-        </label>
+        <Label htmlFor="new_password">Nueva contraseña</Label>
         <div className="relative">
           <Input
             id="new_password"
@@ -56,9 +55,7 @@ function PasswordFields() {
         </div>
       </div>
       <div className="space-y-2">
-        <label htmlFor="confirm_password" className="text-sm font-medium text-foreground">
-          Confirmar nueva contraseña
-        </label>
+        <Label htmlFor="confirm_password">Confirmar nueva contraseña</Label>
         <div className="relative">
           <Input
             id="confirm_password"
@@ -134,15 +131,11 @@ export function AccountSettingsForm({
           <CardContent className="md:w-1/2">
             <form action={profileAction} className="space-y-4 md:max-w-sm md:ml-auto">
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-foreground">
-                  Email
-                </label>
+                <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" value={initialEmail ?? ""} disabled />
               </div>
               <div className="space-y-2">
-                <label htmlFor="username" className="text-sm font-medium text-foreground">
-                  Nombre de usuario
-                </label>
+                <Label htmlFor="username">Nombre de usuario</Label>
                 <Input
                   id="username"
                   name="username"
@@ -152,9 +145,7 @@ export function AccountSettingsForm({
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="avatar_url" className="text-sm font-medium text-foreground">
-                  URL de imagen de perfil
-                </label>
+                <Label htmlFor="avatar_url">URL de imagen de perfil</Label>
                 <Input
                   id="avatar_url"
                   name="avatar_url"

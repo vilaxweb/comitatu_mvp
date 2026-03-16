@@ -10,11 +10,11 @@ export default async function ProviderDetailsPage() {
   const details = await getProviderDetails();
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col space-y-6">
+    <div className="flex w-full flex-col space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Mis datos</h1>
+        <h1 className="text-xl font-semibold text-foreground">Datos de facturación</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Completa o edita tu información. Se utilizará para facturas y pagos.
+          Completa o edita tus datos. Los utilizaremos para emitir facturas y realizar pagos.
         </p>
       </div>
       <ProviderDetailsForm initialData={details} />

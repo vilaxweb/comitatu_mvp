@@ -5,6 +5,7 @@ import { login, type AuthResult } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 export function LoginForm({ nextPath }: { nextPath?: string }) {
   const [state, formAction] = useActionState<AuthResult | null, FormData>(
@@ -21,9 +22,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
         <form action={formAction} className="space-y-4">
           {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
           <div className="space-y-2">
-            <label htmlFor="email_or_username" className="text-sm font-medium text-foreground">
-              Email o nombre de usuario
-            </label>
+            <Label htmlFor="email_or_username">Email o nombre de usuario</Label>
             <Input
               id="email_or_username"
               name="email_or_username"
@@ -35,9 +34,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-foreground">
-              Contraseña
-            </label>
+            <Label htmlFor="password">Contraseña</Label>
             <Input
               id="password"
               name="password"

@@ -3,6 +3,7 @@
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { upsertProviderService, deleteProviderService } from "./actions";
 
 type ProviderServiceFormProps = {
@@ -66,9 +67,9 @@ export function ProviderServiceForm({
     <div className="space-y-2">
       <div className="flex flex-wrap items-end gap-2">
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground" htmlFor={`price-${predefinedServiceId}`}>
+          <Label className="text-xs font-medium text-muted-foreground" htmlFor={`price-${predefinedServiceId}`}>
             Precio
-          </label>
+          </Label>
           <Input
             id={`price-${predefinedServiceId}`}
             type="number"
@@ -84,9 +85,9 @@ export function ProviderServiceForm({
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground" htmlFor={`duration-${predefinedServiceId}`}>
+          <Label className="text-xs font-medium text-muted-foreground" htmlFor={`duration-${predefinedServiceId}`}>
             Duración (min)
-          </label>
+          </Label>
           <Input
             id={`duration-${predefinedServiceId}`}
             type="number"

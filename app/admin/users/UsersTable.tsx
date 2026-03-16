@@ -4,6 +4,14 @@ import { useTransition, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import type { AdminUserSummary } from "../actions";
 import { updateUserFromAdmin } from "../actions";
 
@@ -56,29 +64,41 @@ export function UsersTable({ initialUsers }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <select
-          value={typeFilter}
-          onChange={(e) =>
-            setTypeFilter(e.target.value as "" | "customer" | "provider" | "admin")
+        <Select
+          value={typeFilter || "all-types"}
+          onValueChange={(value) =>
+            setTypeFilter(
+              (value === "all-types" ? "" : value) as "" | "customer" | "provider" | "admin",
+            )
           }
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
         >
-          <option value="">Todos los tipos</option>
-          <option value="customer">Cliente</option>
-          <option value="provider">Proveedor</option>
-          <option value="admin">Admin</option>
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) =>
-            setStatusFilter(e.target.value as "" | "active" | "inactive")
+          <SelectTrigger className="h-9 w-[160px]">
+            <SelectValue placeholder="Todos los tipos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-types">Todos los tipos</SelectItem>
+            <SelectItem value="customer">Cliente</SelectItem>
+            <SelectItem value="provider">Proveedor</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={statusFilter || "all-statuses"}
+          onValueChange={(value) =>
+            setStatusFilter(
+              (value === "all-statuses" ? "" : value) as "" | "active" | "inactive",
+            )
           }
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
         >
-          <option value="">Todos los estados</option>
-          <option value="active">Activo</option>
-          <option value="inactive">Inactivo</option>
-        </select>
+          <SelectTrigger className="h-9 w-[160px]">
+            <SelectValue placeholder="Todos los estados" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-statuses">Todos los estados</SelectItem>
+            <SelectItem value="active">Activo</SelectItem>
+            <SelectItem value="inactive">Inactivo</SelectItem>
+          </SelectContent>
+        </Select>
         <Input
           placeholder="Buscar por email o usuario"
           value={search}
@@ -86,6 +106,8 @@ export function UsersTable({ initialUsers }: Props) {
           className="h-9 max-w-xs"
         />
       </div>
+
+      <Separator className="border-border" />
 
       <div className="rounded-md border border-border bg-card">
         <Table>
@@ -104,31 +126,39 @@ export function UsersTable({ initialUsers }: Props) {
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
-                  <select
+                  <Select
                     value={user.user_type}
-                    onChange={(e) =>
-                      handleChange(user.id, "user_type", e.target.value)
+                    onValueChange={(value) =>
+                      handleChange(user.id, "user_type", value)
                     }
-                    className="h-8 rounded-md border border-input bg-background px-2 text-xs"
                     disabled={isPending && pendingUserId === user.id}
                   >
-                    <option value="customer">Cliente</option>
-                    <option value="provider">Proveedor</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                    <SelectTrigger className="h-8 w-[130px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="customer">Cliente</SelectItem>
+                      <SelectItem value="provider">Proveedor</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
-                  <select
+                  <Select
                     value={user.status}
-                    onChange={(e) =>
-                      handleChange(user.id, "status", e.target.value)
+                    onValueChange={(value) =>
+                      handleChange(user.id, "status", value)
                     }
-                    className="h-8 rounded-md border border-input bg-background px-2 text-xs"
                     disabled={isPending && pendingUserId === user.id}
                   >
-                    <option value="active">Activo</option>
-                    <option value="inactive">Inactivo</option>
-                  </select>
+                    <SelectTrigger className="h-8 w-[130px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Activo</SelectItem>
+                      <SelectItem value="inactive">Inactivo</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell className="text-right text-xs text-muted-foreground">
                   {user.services_count ?? 0}

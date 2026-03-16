@@ -5,6 +5,14 @@ import { register, type AuthResult } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function RegisterForm() {
   const [state, formAction] = useActionState<AuthResult | null, FormData>(
@@ -20,9 +28,7 @@ export function RegisterForm() {
       <CardContent className="space-y-4">
         <form action={formAction} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium text-foreground">
-              Nombre de usuario
-            </label>
+            <Label htmlFor="username">Nombre de usuario</Label>
             <Input
               id="username"
               name="username"
@@ -34,9 +40,7 @@ export function RegisterForm() {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-foreground">
-              Email
-            </label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               name="email"
@@ -48,23 +52,19 @@ export function RegisterForm() {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="user_type" className="text-sm font-medium text-foreground">
-              Tipo de cuenta
-            </label>
-            <select
-              id="user_type"
-              name="user_type"
-              required
-              className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
-            >
-              <option value="customer">Cliente</option>
-              <option value="provider">Proveedor</option>
-            </select>
+            <Label htmlFor="user_type">Tipo de cuenta</Label>
+            <Select name="user_type" defaultValue="customer" required>
+              <SelectTrigger id="user_type" className="w-full">
+                <SelectValue placeholder="Selecciona un tipo de cuenta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="customer">Cliente</SelectItem>
+                <SelectItem value="provider">Proveedor</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-foreground">
-              Contraseña (mín. 6 caracteres)
-            </label>
+            <Label htmlFor="password">Contraseña (mín. 6 caracteres)</Label>
             <Input
               id="password"
               name="password"

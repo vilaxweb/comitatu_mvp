@@ -14,6 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/lib/formatPrice";
 
 type VoidFormAction = (formData: FormData) => void | Promise<void>;
@@ -36,21 +39,20 @@ export function ServiceDetailClient({
         </CardHeader>
         <CardContent className="space-y-4">
           <EditServiceForm service={service} />
-          <div className="border-t border-border pt-4">
-            <form action={deleteService as unknown as VoidFormAction}>
-              <input type="hidden" name="serviceId" value={service.id} />
-              <Button
-                type="submit"
-                variant="destructive"
-                size="sm"
-                className="gap-2"
-                aria-label="Eliminar servicio y sus ítems"
-              >
-                <Trash2 className="size-4" aria-hidden />
-                Eliminar servicio y sus ítems
-              </Button>
-            </form>
-          </div>
+          <Separator className="my-4" />
+          <form action={deleteService as unknown as VoidFormAction}>
+            <input type="hidden" name="serviceId" value={service.id} />
+            <Button
+              type="submit"
+              variant="destructive"
+              size="sm"
+              className="gap-2"
+              aria-label="Eliminar servicio y sus ítems"
+            >
+              <Trash2 className="size-4" aria-hidden />
+              Eliminar servicio y sus ítems
+            </Button>
+          </form>
         </CardContent>
       </Card>
 
@@ -120,9 +122,9 @@ function EditServiceForm({ service }: { service: Service }) {
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="name" className="text-sm font-medium text-foreground">
+        <Label htmlFor="name">
           Nombre del Servicio <span className="text-destructive">*</span>
-        </label>
+        </Label>
         <Input
           id="name"
           name="name"
@@ -133,15 +135,12 @@ function EditServiceForm({ service }: { service: Service }) {
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="description" className="text-sm font-medium text-foreground">
-          Descripción (opcional)
-        </label>
-        <textarea
+        <Label htmlFor="description">Descripción (opcional)</Label>
+        <Textarea
           id="description"
           name="description"
           rows={3}
           defaultValue={service.description}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
         />
       </div>
       {state && "error" in state ? (
@@ -163,9 +162,9 @@ function AddItemForm({ serviceId }: { serviceId: string }) {
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="item-name" className="text-sm font-medium text-foreground">
+        <Label htmlFor="item-name">
           Nombre del ítem <span className="text-destructive">*</span>
-        </label>
+        </Label>
         <Input
           id="item-name"
           name="name"
@@ -177,9 +176,9 @@ function AddItemForm({ serviceId }: { serviceId: string }) {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <label htmlFor="item-price" className="text-sm font-medium text-foreground">
+          <Label htmlFor="item-price">
             Precio <span className="text-destructive">*</span>
-          </label>
+          </Label>
           <Input
             id="item-price"
             name="price"
@@ -192,9 +191,9 @@ function AddItemForm({ serviceId }: { serviceId: string }) {
           />
         </div>
         <div className="space-y-2">
-          <label htmlFor="item-time" className="text-sm font-medium text-foreground">
+          <Label htmlFor="item-time">
             Tiempo estimado <span className="text-destructive">*</span>
-          </label>
+          </Label>
           <Input
             id="item-time"
             name="estimated_time"
