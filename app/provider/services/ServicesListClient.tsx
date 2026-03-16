@@ -220,7 +220,7 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
   const router = useRouter();
 
   return (
-    <li className="flex flex-col w-full rounded-xl border border-border bg-card shadow-sm overflow-hidden transition-colors">
+    <li className="flex flex-col w-full rounded-lg border border-border bg-card shadow-sm overflow-hidden transition-colors">
       <div className="flex w-full items-center">
         <button
           type="button"

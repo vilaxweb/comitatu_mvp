@@ -29,9 +29,9 @@ type ServiceRow = {
 export default async function ProviderServiceDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id: serviceId } = await params;
+  const { id: serviceId } = params;
   const { id: userId } = await getProviderUser();
   const supabase = await createClient();
 

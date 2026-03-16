@@ -11,8 +11,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/admin", label: "Dashboard", exact: true, icon: LayoutDashboard },
   { href: "/admin/users", label: "Usuarios", exact: false, icon: Users },
-  // Reservado para futuros apartados:
-  // { href: "/admin/services", label: "Servicios", exact: false, icon: Briefcase },
+  { href: "/admin/services", label: "Catálogo de Servicios", exact: false, icon: Briefcase },
 ] as const;
 
 export function AdminSidebar() {

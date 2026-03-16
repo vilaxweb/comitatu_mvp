@@ -57,7 +57,7 @@ export default async function ProviderServicesPage() {
       </div>
 
       {list.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-6 text-center text-muted-foreground">
+        <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
           <p className="text-sm">Aún no tienes servicios.</p>
           <Link href="/provider">
             <Button className="mt-3">Añadir primer servicio</Button>
