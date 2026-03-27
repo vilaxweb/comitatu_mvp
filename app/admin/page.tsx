@@ -17,8 +17,8 @@ export default async function AdminHomePage() {
   } = await getAdminDashboardStats();
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="app-page">
+      <div className="app-title-block">
         <h2 className="text-xl font-semibold text-foreground">
           Resumen general
         </h2>

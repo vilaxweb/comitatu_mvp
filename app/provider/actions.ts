@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProviderUser } from "@/lib/auth/get-provider-user";
+import { isProviderSector, type ProviderSector } from "@/lib/provider-sectors";
 
 export type ServiceActionResult =
   | { error: string }
@@ -14,6 +15,27 @@ export type ItemActionResult = { error: string } | { success: true };
 type ItemValidationResult =
   | { ok: false; error: string }
   | { ok: true; name: string; price: number; estimatedTime: string };
+
+function parseEstimatedHours(raw: string): number | null {
+  const normalized = raw.trim().toLowerCase().replace(",", ".");
+  if (!normalized) return null;
+
+  const directNumber = Number(normalized);
+  if (Number.isFinite(directNumber) && directNumber > 0) {
+    return directNumber;
+  }
+
+  const matched = normalized.match(/^(\d+(?:\.\d+)?)\s*(h|hr|hrs|hora|horas)$/);
+  if (!matched) return null;
+
+  const parsed = Number(matched[1]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function formatEstimatedHours(hours: number): string {
+  const wholeHours = Number.isInteger(hours) ? String(hours) : String(hours).replace(/\.0+$/, "");
+  return `${wholeHours} ${hours === 1 ? "hora" : "horas"}`;
+}
 
 function validateItemForm(formData: FormData): ItemValidationResult {
   const name = (formData.get("name") as string)?.trim();
@@ -36,12 +58,45 @@ function validateItemForm(formData: FormData): ItemValidationResult {
     return { ok: false, error: "El tiempo estimado es obligatorio." };
   }
 
+  const estimatedHours = parseEstimatedHours(estimatedTime);
+  if (estimatedHours == null) {
+    return { ok: false, error: "El tiempo debe estar expresado en horas (ej. 2 o 1.5)." };
+  }
+
   return {
     ok: true,
     name,
     price,
-    estimatedTime,
+    estimatedTime: formatEstimatedHours(estimatedHours),
   };
+}
+
+async function ensureOwnedService(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  serviceId: string,
+  userId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("services")
+    .select("id")
+    .eq("id", serviceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return !error && !!data;
+}
+
+async function ensureOwnedItem(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  itemId: string,
+  userId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("items")
+    .select("id, services!inner(user_id)")
+    .eq("id", itemId)
+    .eq("services.user_id", userId)
+    .maybeSingle();
+  return !error && !!data;
 }
 
 export async function createService(formData: FormData): Promise<ServiceActionResult> {
@@ -86,8 +141,11 @@ export async function updateService(
     return { error: "El nombre del servicio es obligatorio." };
   }
 
-  await getProviderUser();
+  const { id: userId } = await getProviderUser();
   const supabase = await createClient();
+  if (!(await ensureOwnedService(supabase, serviceId, userId))) {
+    return { error: "No tienes permiso para modificar este servicio." };
+  }
 
   const { error } = await supabase
     .from("services")
@@ -116,8 +174,11 @@ export async function toggleServiceActive(formData: FormData): Promise<ServiceAc
     return { error: "Valor de estado no válido." };
   }
 
-  await getProviderUser();
+  const { id: userId } = await getProviderUser();
   const supabase = await createClient();
+  if (!(await ensureOwnedService(supabase, serviceId, userId))) {
+    return { error: "No tienes permiso para modificar este servicio." };
+  }
 
   const { error } = await supabase
     .from("services")
@@ -138,8 +199,11 @@ export async function deleteService(formData: FormData): Promise<ServiceActionRe
   const serviceId = (formData.get("serviceId") as string)?.trim();
   if (!serviceId) return { error: "ID de servicio no válido." };
 
-  await getProviderUser();
+  const { id: userId } = await getProviderUser();
   const supabase = await createClient();
+  if (!(await ensureOwnedService(supabase, serviceId, userId))) {
+    return { error: "No tienes permiso para eliminar este servicio." };
+  }
 
   const { error } = await supabase.from("services").delete().eq("id", serviceId);
 
@@ -159,8 +223,11 @@ export async function createItem(
   const validated = validateItemForm(formData);
   if (!validated.ok) return { error: validated.error };
 
-  await getProviderUser();
+  const { id: userId } = await getProviderUser();
   const supabase = await createClient();
+  if (!(await ensureOwnedService(supabase, serviceId, userId))) {
+    return { error: "No tienes permiso para añadir ítems a este servicio." };
+  }
 
   const { error } = await supabase.from("items").insert({
     service_id: serviceId,
@@ -188,8 +255,11 @@ export async function updateItem(formData: FormData): Promise<ItemActionResult> 
   const validated = validateItemForm(formData);
   if (!validated.ok) return { error: validated.error };
 
-  await getProviderUser();
+  const { id: userId } = await getProviderUser();
   const supabase = await createClient();
+  if (!(await ensureOwnedItem(supabase, itemId, userId))) {
+    return { error: "No tienes permiso para modificar este ítem." };
+  }
 
   const { error } = await supabase
     .from("items")
@@ -214,8 +284,11 @@ export async function deleteItem(formData: FormData): Promise<ItemActionResult> 
   const serviceId = (formData.get("serviceId") as string)?.trim();
   if (!itemId) return { error: "ID de ítem no válido." };
 
-  await getProviderUser();
+  const { id: userId } = await getProviderUser();
   const supabase = await createClient();
+  if (!(await ensureOwnedItem(supabase, itemId, userId))) {
+    return { error: "No tienes permiso para eliminar este ítem." };
+  }
 
   const { error } = await supabase.from("items").delete().eq("id", itemId);
 
@@ -238,8 +311,11 @@ export async function toggleItemActive(formData: FormData): Promise<ItemActionRe
     return { error: "Valor de estado no válido." };
   }
 
-  await getProviderUser();
+  const { id: userId } = await getProviderUser();
   const supabase = await createClient();
+  if (!(await ensureOwnedItem(supabase, itemId, userId))) {
+    return { error: "No tienes permiso para modificar este ítem." };
+  }
 
   const { error } = await supabase
     .from("items")
@@ -268,6 +344,7 @@ export type ProviderDetailsRow = {
   telefono: string | null;
   email_facturacion: string | null;
   iban: string | null;
+  sector: ProviderSector | null;
   created_at: string;
   updated_at: string;
 };
@@ -296,16 +373,44 @@ export async function upsertProviderDetails(
   const { id: userId } = await getProviderUser();
   const supabase = await createClient();
 
+  const sectorRaw = (formData.get("sector") as string)?.trim() || "";
+  if (!isProviderSector(sectorRaw)) {
+    return { error: "Selecciona un sector válido para tu cuenta." };
+  }
+
+  const dni = (formData.get("dni") as string)?.trim() || null;
+  const cif = (formData.get("cif") as string)?.trim() || null;
+  const telefono = (formData.get("telefono") as string)?.trim() || null;
+  const emailFacturacion = (formData.get("email_facturacion") as string)?.trim() || null;
+  const ibanRaw = (formData.get("iban") as string)?.trim().replace(/\s+/g, "").toUpperCase() || null;
+
+  if (emailFacturacion && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailFacturacion)) {
+    return { error: "Introduce un email de facturación válido." };
+  }
+  if (telefono && !/^\+?[0-9()\-\s]{7,20}$/.test(telefono)) {
+    return { error: "Introduce un teléfono válido." };
+  }
+  if (dni && !/^[A-Za-z0-9]{8,12}$/.test(dni)) {
+    return { error: "El DNI debe tener entre 8 y 12 caracteres alfanuméricos." };
+  }
+  if (cif && !/^[A-Za-z0-9]{8,12}$/.test(cif)) {
+    return { error: "El CIF debe tener entre 8 y 12 caracteres alfanuméricos." };
+  }
+  if (ibanRaw && !/^[A-Z]{2}[0-9A-Z]{13,32}$/.test(ibanRaw)) {
+    return { error: "Introduce un IBAN válido." };
+  }
+
   const payload = {
     user_id: userId,
     nombre: (formData.get("nombre") as string)?.trim() || null,
-    dni: (formData.get("dni") as string)?.trim() || null,
-    cif: (formData.get("cif") as string)?.trim() || null,
+    dni,
+    cif,
     nombre_empresa: (formData.get("nombre_empresa") as string)?.trim() || null,
     direccion: (formData.get("direccion") as string)?.trim() || null,
-    telefono: (formData.get("telefono") as string)?.trim() || null,
-    email_facturacion: (formData.get("email_facturacion") as string)?.trim() || null,
-    iban: (formData.get("iban") as string)?.trim() || null,
+    telefono,
+    email_facturacion: emailFacturacion,
+    iban: ibanRaw,
+    sector: sectorRaw,
   };
 
   const { error } = await supabase.from("provider_details").upsert(payload, {

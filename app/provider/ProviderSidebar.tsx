@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/provider", label: "Añadir Servicio", exact: true, icon: PlusCircle },
+  { href: "/provider", label: "Crear Servicio", exact: true, icon: PlusCircle },
   { href: "/provider/services", label: "Servicios a medida", exact: false, icon: LayoutList },
-  { href: "/provider/catalog", label: "Servicios del catálogo", exact: false, icon: Briefcase },
+  { href: "/provider/catalog", label: "Catálogo", exact: false, icon: Briefcase },
   { href: "/provider/details", label: "Datos de facturación", exact: true, icon: CreditCard },
 ] as const;
 

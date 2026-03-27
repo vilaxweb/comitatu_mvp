@@ -124,3 +124,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .app-page {
+    @apply w-full space-y-6;
+  }
+
+  .app-page-narrow {
+    @apply mx-auto w-full max-w-4xl space-y-6;
+  }
+
+  .app-title-block {
+    @apply space-y-1;
+  }
+
+  .app-card {
+    @apply rounded-xl border border-border bg-card;
+  }
+
+  /* Shopify-like dense admin blocks: one surface, rows separated by dividers. */
+  .admin-index-surface {
+    @apply overflow-hidden rounded-xl border border-border bg-background;
+  }
+
+  .admin-index-header {
+    @apply border-b border-border/70 bg-muted/30 px-3 py-2 text-xs font-medium text-muted-foreground md:px-4 lg:px-5;
+  }
+
+  .admin-index-list {
+    @apply divide-y divide-border/70;
+  }
+}

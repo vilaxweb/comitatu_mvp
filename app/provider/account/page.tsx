@@ -21,8 +21,8 @@ export default async function ProviderAccountPage() {
   const initialAvatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null;
 
   return (
-    <div className="flex w-full flex-col space-y-6">
-      <div>
+    <div className="app-page flex flex-col">
+      <div className="app-title-block">
         <h1 className="text-xl font-semibold text-foreground">Mi cuenta</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Edita tu información de perfil, actualiza tu contraseña o elimina tu cuenta.

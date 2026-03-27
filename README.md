@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Comitatu MVP
 
-## Getting Started
+Marketplace MVP con dos paneles principales:
+- `admin`: gestión de usuarios, categorías y servicios predefinidos.
+- `provider`: gestión de perfil, datos fiscales y catálogo de servicios.
 
-First, run the development server:
+Stack principal: Next.js App Router + Supabase (Auth + Postgres + RLS).
+
+## Requisitos
+
+- Node.js 20+
+- npm 10+
+- Proyecto Supabase con las variables de entorno configuradas
+
+## Variables de entorno
+
+Configura al menos:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SITE_URL` (URL pública canónica, usada en recuperación de contraseña)
+
+## Desarrollo local
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Calidad y pruebas
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm run test:smoke
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy checklist (mínimo)
 
-## Learn More
+1. Ejecutar migraciones SQL pendientes en Supabase.
+2. Validar login, recovery y reset password en entorno de staging.
+3. Validar flujo provider: completar perfil, activar servicio y guardar catálogo.
+4. Validar flujo admin: alta usuario, edición de estado y edición de catálogo.
+5. Verificar que CI (`lint`, `typecheck`, `build`, `test:smoke`) está en verde.
 
-To learn more about Next.js, take a look at the following resources:
+## Rollback básico
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Revertir despliegue de aplicación al build anterior estable.
+2. Si una migración rompe datos, aplicar migración correctiva explícita (no editar migraciones ya aplicadas).
+3. Verificar acceso de usuarios críticos (admin y provider) tras rollback.

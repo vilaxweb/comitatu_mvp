@@ -9,6 +9,7 @@ async function assertAdmin() {
 }
 
 export async function listServiceCategories() {
+  await assertAdmin();
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("service_categories")

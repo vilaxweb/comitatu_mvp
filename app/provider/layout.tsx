@@ -12,6 +12,7 @@ type ProviderDetailsForBilling = {
   telefono: string | null;
   email_facturacion: string | null;
   iban: string | null;
+  sector: string | null;
 } | null;
 
 function isBillingIncomplete(details: ProviderDetailsForBilling): boolean {
@@ -24,6 +25,7 @@ function isBillingIncomplete(details: ProviderDetailsForBilling): boolean {
     "telefono",
     "email_facturacion",
     "iban",
+    "sector",
   ];
 
   return requiredFields.some((field) => !details[field]);
@@ -43,7 +45,7 @@ export default async function ProviderLayout({
   const supabase = await createClient();
   const { data: details } = await supabase
     .from("provider_details")
-    .select("nombre, nombre_empresa, direccion, telefono, email_facturacion, iban")
+    .select("nombre, nombre_empresa, direccion, telefono, email_facturacion, iban, sector")
     .eq("user_id", userId)
     .maybeSingle();
   const billingIncomplete = isBillingIncomplete(details);

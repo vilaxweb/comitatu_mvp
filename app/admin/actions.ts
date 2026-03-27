@@ -1,8 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-
-const MIN_PASSWORD_LENGTH = 6;
+import { getPasswordPolicyMessage, isStrongPassword } from "@/lib/auth/security";
 
 export type AdminDashboardStats = {
   totalActiveUsers: number;
@@ -28,7 +27,7 @@ export type AdminUserSummary = {
   services_count: number | null;
 };
 
-export async function createAdminUser(
+export async function createUserFromAdmin(
   formData: FormData,
 ): Promise<AdminCreateResult> {
   const supabase = await createClient();
@@ -53,13 +52,14 @@ export async function createAdminUser(
     currentProfile.user_type !== "admin" ||
     currentProfile.status !== "active"
   ) {
-    return { error: "No tienes permisos para crear administradores." };
+    return { error: "No tienes permisos para crear usuarios." };
   }
 
   // 2) Leer datos del formulario
   const email = (formData.get("email") as string | null)?.trim() ?? "";
   const password = (formData.get("password") as string | null) ?? "";
   const username = (formData.get("username") as string | null)?.trim() ?? "";
+  const userType = (formData.get("user_type") as string | null)?.trim() ?? "customer";
   const status = (formData.get("status") as string | null)?.trim() ?? "active";
 
   if (!email) {
@@ -68,24 +68,27 @@ export async function createAdminUser(
   if (!password) {
     return { error: "La contraseña es obligatoria." };
   }
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { error: "La contraseña debe tener al menos 6 caracteres." };
+  if (!isStrongPassword(password)) {
+    return { error: getPasswordPolicyMessage() };
   }
   if (!username) {
     return { error: "El nombre de usuario es obligatorio." };
+  }
+  if (!["customer", "provider", "admin"].includes(userType)) {
+    return { error: "El tipo de usuario no es válido." };
   }
   if (!["active", "inactive"].includes(status)) {
     return { error: "El estado debe ser activo o inactivo." };
   }
 
-  // 3) Crear usuario en Supabase Auth con metadata de admin
+  // 3) Crear usuario en Supabase Auth con metadata del tipo seleccionado
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         username,
-        user_type: "admin",
+        user_type: userType,
         status,
       },
     },
@@ -100,8 +103,7 @@ export async function createAdminUser(
     }
     return {
       error:
-        error.message ||
-        "Error al crear el administrador. Inténtalo de nuevo.",
+        error.message || "Error al crear el usuario. Inténtalo de nuevo.",
     };
   }
 
@@ -184,7 +186,9 @@ export async function getUsersForAdmin(): Promise<AdminUserSummary[]> {
     }
   }
 
-  return rows.map((row) => {
+  return rows
+    .filter((row) => row.user_type !== "admin")
+    .map((row) => {
     const base: AdminUserSummary = {
       id: row.id,
       email: row.email,
@@ -198,8 +202,8 @@ export async function getUsersForAdmin(): Promise<AdminUserSummary[]> {
       base.services_count = servicesCountByUser[row.id] ?? 0;
     }
 
-    return base;
-  });
+      return base;
+    });
 }
 
 export async function updateUserFromAdmin(

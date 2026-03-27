@@ -2,11 +2,15 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getProviderUser } from "@/lib/auth/get-provider-user";
+import { type ProviderSector } from "@/lib/provider-sectors";
 
 export type PredefinedService = {
   id: string;
   name: string;
   description: string | null;
+  default_price: number | null;
+  default_duration: number | null;
+  sectors: ProviderSector[];
 };
 
 export type ServiceCategoryWithPredefined = {
@@ -26,11 +30,12 @@ export type ProviderServiceRow = {
 export async function listCatalogWithProviderServices(): Promise<{
   categories: ServiceCategoryWithPredefined[];
   providerServices: ProviderServiceRow[];
+  providerSector: ProviderSector | null;
 }> {
   const supabase = await createClient();
   const { id: providerId } = await getProviderUser();
 
-  const [{ data: categories }, { data: providerServices }] = await Promise.all([
+  const [{ data: categories }, { data: providerServices }, { data: providerDetails }] = await Promise.all([
     supabase
       .from("service_categories")
       .select(
@@ -41,7 +46,10 @@ export async function listCatalogWithProviderServices(): Promise<{
         predefined_services (
           id,
           name,
-          description
+          description,
+          default_price,
+          default_duration,
+          sectors
         )
       `,
       )
@@ -50,11 +58,26 @@ export async function listCatalogWithProviderServices(): Promise<{
       .from("provider_services")
       .select("id, predefined_service_id, price, duration")
       .eq("provider_id", providerId),
+    supabase.from("provider_details").select("sector").eq("user_id", providerId).maybeSingle(),
   ]);
 
+  const providerSector = (providerDetails?.sector ?? null) as ProviderSector | null;
+  const filteredCategories = providerSector
+    ? ((categories ?? []) as ServiceCategoryWithPredefined[])
+        .map((category) => ({
+          ...category,
+          predefined_services:
+            category.predefined_services?.filter((service) =>
+              (service.sectors ?? []).includes(providerSector),
+            ) ?? [],
+        }))
+        .filter((category) => (category.predefined_services?.length ?? 0) > 0)
+    : [];
+
   return {
-    categories: (categories ?? []) as ServiceCategoryWithPredefined[],
+    categories: filteredCategories,
     providerServices: (providerServices ?? []) as ProviderServiceRow[],
+    providerSector,
   };
 }
 
@@ -65,6 +88,29 @@ export async function upsertProviderService(input: {
 }) {
   const supabase = await createClient();
   const { id: providerId } = await getProviderUser();
+  const { data: providerDetails } = await supabase
+    .from("provider_details")
+    .select("sector")
+    .eq("user_id", providerId)
+    .maybeSingle();
+  const providerSector = (providerDetails?.sector ?? null) as ProviderSector | null;
+  if (!providerSector) {
+    throw new Error("Completa tu sector en datos de proveedor antes de activar servicios.");
+  }
+
+  const { data: predefinedService, error: predefinedServiceError } = await supabase
+    .from("predefined_services")
+    .select("id, sectors")
+    .eq("id", input.predefinedServiceId)
+    .single();
+
+  if (predefinedServiceError || !predefinedService) {
+    throw new Error("El servicio seleccionado no existe.");
+  }
+
+  if (!(predefinedService.sectors ?? []).includes(providerSector)) {
+    throw new Error("No puedes activar servicios fuera del sector de tu cuenta.");
+  }
 
   const { error } = await supabase
     .from("provider_services")

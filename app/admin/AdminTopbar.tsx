@@ -32,7 +32,7 @@
 
    return (
      <header className="sticky top-0 z-30 -mx-4 border-b border-border bg-background/80 px-4 py-3 backdrop-blur md:-mx-6 md:px-6">
-       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+      <div className="flex items-center">
          <Breadcrumb>
            <BreadcrumbList>
              <BreadcrumbItem>

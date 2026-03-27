@@ -13,7 +13,6 @@ import {
 } from "../../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
@@ -32,15 +31,22 @@ export function ServiceDetailClient({
   items: Item[];
 }) {
   return (
-    <div className="space-y-8">
-      <Card className="border border-border bg-card">
-        <CardHeader className="pb-4">
+    <div className="space-y-6">
+      <section className="admin-index-surface p-4 md:p-5">
+        <div className="pb-4">
           <h2 className="text-lg font-medium text-card-foreground">Editar servicio</h2>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="space-y-4">
           <EditServiceForm service={service} />
           <Separator className="my-4" />
-          <form action={deleteService as unknown as VoidFormAction}>
+          <form
+            action={deleteService as unknown as VoidFormAction}
+            onSubmit={(event) => {
+              if (!window.confirm(`Se eliminará el servicio "${service.name}" con todos sus ítems.`)) {
+                event.preventDefault();
+              }
+            }}
+          >
             <input type="hidden" name="serviceId" value={service.id} />
             <Button
               type="submit"
@@ -53,31 +59,31 @@ export function ServiceDetailClient({
               Eliminar servicio y sus ítems
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card className="border border-border bg-card">
-        <CardHeader className="pb-4">
+      <section className="admin-index-surface p-4 md:p-5">
+        <div className="pb-4">
           <h2 className="text-lg font-medium text-card-foreground">Añadir ítem</h2>
           <p className="text-sm text-muted-foreground">
-            Nombre, precio y tiempo estimado (ej. 2 días, 1 mes).
+            Nombre, precio y tiempo estimado en horas.
           </p>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div>
           <AddItemForm serviceId={service.id} />
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <div>
-        <h2 className="mb-3 text-lg font-medium text-foreground">Ítems del servicio</h2>
+      <section className="space-y-3">
+        <h2 className="text-lg font-medium text-foreground">Ítems del servicio</h2>
         {initialItems.length === 0 ? (
           <p className="text-sm text-muted-foreground">Aún no hay ítems. Añade el primero arriba.</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="admin-index-surface admin-index-list">
             {initialItems.map((item) => (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 md:px-4 md:py-3"
               >
                 <div>
                   <span className="font-medium text-foreground">{item.name}</span>
@@ -85,7 +91,14 @@ export function ServiceDetailClient({
                     {formatPrice(item.price)} · {item.estimated_time}
                   </span>
                 </div>
-                <form action={deleteItem as unknown as VoidFormAction}>
+                <form
+                  action={deleteItem as unknown as VoidFormAction}
+                  onSubmit={(event) => {
+                    if (!window.confirm(`Se eliminará el ítem "${item.name}".`)) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
                   <input type="hidden" name="itemId" value={item.id} />
                   <input type="hidden" name="serviceId" value={service.id} />
                   <Button
@@ -102,7 +115,7 @@ export function ServiceDetailClient({
             ))}
           </ul>
         )}
-      </div>
+      </section>
 
       <p className="text-sm text-muted-foreground">
         <Link href="/provider/services" className="underline hover:no-underline">
@@ -192,13 +205,16 @@ function AddItemForm({ serviceId }: { serviceId: string }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="item-time">
-            Tiempo estimado <span className="text-destructive">*</span>
+            Tiempo estimado (horas) <span className="text-destructive">*</span>
           </Label>
           <Input
             id="item-time"
             name="estimated_time"
-            type="text"
-            placeholder="ej. 2 días, 1 mes"
+            type="number"
+            step="0.5"
+            min="0.5"
+            inputMode="decimal"
+            placeholder="ej. 2"
             required
             className="w-full"
           />

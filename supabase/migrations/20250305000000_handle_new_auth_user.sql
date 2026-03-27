@@ -28,7 +28,7 @@ BEGIN
       'u' || replace(NEW.id::text, '-', '')  -- fallback único si se crea desde Dashboard sin metadata
     ),
     CASE
-      WHEN NEW.raw_user_meta_data->>'user_type' IN ('provider', 'customer', 'admin') THEN NEW.raw_user_meta_data->>'user_type'
+      WHEN NEW.raw_user_meta_data->>'user_type' IN ('provider', 'customer') THEN NEW.raw_user_meta_data->>'user_type'
       ELSE 'customer'
     END,
     COALESCE(

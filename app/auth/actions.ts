@@ -2,10 +2,16 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-
-const MIN_PASSWORD_LENGTH = 6;
+import { isProviderSector } from "@/lib/provider-sectors";
+import {
+  getCanonicalSiteUrl,
+  getPasswordPolicyMessage,
+  isStrongPassword,
+  sanitizeInternalPath,
+} from "@/lib/auth/security";
 
 export type AuthResult = { error: string } | { success: true };
+export type AuthMessageResult = { error: string } | { success: string };
 
 const ALLOWED_USER_TYPES = ["provider", "customer"] as const;
 
@@ -14,6 +20,7 @@ export async function register(formData: FormData): Promise<AuthResult> {
   const password = formData.get("password") as string;
   const username = (formData.get("username") as string)?.trim();
   const userType = (formData.get("user_type") as string)?.trim();
+  const providerSector = (formData.get("provider_sector") as string | null)?.trim() ?? "";
 
   if (!email) {
     return { error: "El correo electrónico es obligatorio." };
@@ -21,8 +28,8 @@ export async function register(formData: FormData): Promise<AuthResult> {
   if (!password) {
     return { error: "La contraseña es obligatoria." };
   }
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { error: "La contraseña debe tener al menos 6 caracteres." };
+  if (!isStrongPassword(password)) {
+    return { error: getPasswordPolicyMessage() };
   }
   if (!username) {
     return { error: "El nombre de usuario es obligatorio." };
@@ -30,13 +37,20 @@ export async function register(formData: FormData): Promise<AuthResult> {
   if (!userType || !ALLOWED_USER_TYPES.includes(userType as (typeof ALLOWED_USER_TYPES)[number])) {
     return { error: "Selecciona un tipo de cuenta válido." };
   }
+  if (userType === "provider" && !isProviderSector(providerSector)) {
+    return { error: "Selecciona un sector válido para tu cuenta de proveedor." };
+  }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { username, user_type: userType },
+      data: {
+        username,
+        user_type: userType,
+        provider_sector: userType === "provider" ? providerSector : null,
+      },
     },
   });
 
@@ -48,6 +62,16 @@ export async function register(formData: FormData): Promise<AuthResult> {
   }
 
   if (userType === "provider") {
+    const userId = data.user?.id;
+    if (userId && isProviderSector(providerSector)) {
+      await supabase.from("provider_details").upsert(
+        {
+          user_id: userId,
+          sector: providerSector,
+        },
+        { onConflict: "user_id" },
+      );
+    }
     redirect("/auth/login?next=/provider/details");
   }
 
@@ -75,7 +99,7 @@ async function resolveEmail(supabase: Awaited<ReturnType<typeof createClient>>, 
 export async function login(formData: FormData): Promise<AuthResult> {
   const emailOrUsername = (formData.get("email_or_username") as string)?.trim();
   const password = formData.get("password") as string;
-  const next = (formData.get("next") as string | null) ?? null;
+  const next = sanitizeInternalPath((formData.get("next") as string | null) ?? null);
 
   if (!emailOrUsername) {
     return { error: "El correo o nombre de usuario es obligatorio." };
@@ -110,9 +134,7 @@ export async function login(formData: FormData): Promise<AuthResult> {
       .eq("id", userId)
       .single();
 
-    if (next) {
-      redirect(next);
-    }
+    if (next !== "/") redirect(next);
 
     if (profile?.user_type === "admin" && profile.status === "active") {
       redirect("/admin");
@@ -131,3 +153,70 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/auth/login");
 }
+
+export async function requestPasswordRecovery(formData: FormData): Promise<AuthMessageResult> {
+  const emailOrUsername = (formData.get("email_or_username") as string)?.trim();
+
+  if (!emailOrUsername) {
+    return { error: "El correo o nombre de usuario es obligatorio." };
+  }
+
+  const supabase = await createClient();
+  const email = await resolveEmail(supabase, emailOrUsername);
+  const siteUrl = getCanonicalSiteUrl();
+  if (!siteUrl) {
+    return { error: "No se pudo iniciar la recuperación. Configura NEXT_PUBLIC_SITE_URL." };
+  }
+  const redirectTo = `${siteUrl}/auth/confirm?next=/auth/reset-password&type=recovery`;
+
+  if (!email) {
+    return {
+      success: "Si los datos son correctos, recibirás un correo para restablecer tu contraseña.",
+    };
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) {
+    return { error: error.message || "No se pudo iniciar la recuperación. Inténtalo de nuevo." };
+  }
+
+  return {
+    success: "Si los datos son correctos, recibirás un correo para restablecer tu contraseña.",
+  };
+}
+
+export async function updateRecoveredPassword(formData: FormData): Promise<AuthResult> {
+  const newPassword = (formData.get("new_password") as string) ?? "";
+  const confirmPassword = (formData.get("confirm_password") as string) ?? "";
+
+  if (!newPassword) {
+    return { error: "La nueva contraseña es obligatoria." };
+  }
+  if (!isStrongPassword(newPassword)) {
+    return { error: getPasswordPolicyMessage() };
+  }
+  if (newPassword !== confirmPassword) {
+    return { error: "Las contraseñas no coinciden." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "El enlace de recuperación es inválido o ha expirado." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+  if (error) {
+    return { error: error.message || "No se pudo actualizar la contraseña." };
+  }
+
+  return { success: true };
+}
+

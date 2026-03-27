@@ -24,7 +24,7 @@ export function AddServiceForm() {
   );
 
   return (
-    <Card className="border border-border bg-card">
+    <Card className="app-card">
       <CardHeader className="pb-4">
         <h2 className="text-lg font-medium text-card-foreground">Nuevo servicio</h2>
       </CardHeader>
@@ -58,7 +58,7 @@ export function AddServiceForm() {
             </p>
           ) : null}
           <Button type="submit" className="w-full">
-            Añadir Servicio
+            Crear Servicio
           </Button>
         </form>
       </CardContent>

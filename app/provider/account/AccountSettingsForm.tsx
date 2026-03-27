@@ -3,7 +3,6 @@
 import { useActionState, useState } from "react";
 import type { ProfileActionResult } from "@/app/auth/profile-actions";
 import { updateProfile, updatePassword, deleteAccount } from "@/app/auth/profile-actions";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +34,7 @@ function PasswordFields() {
             id="new_password"
             name="new_password"
             type={showNewPassword ? "text" : "password"}
-            minLength={6}
+            minLength={10}
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
             className={cn(
@@ -61,7 +60,7 @@ function PasswordFields() {
             id="confirm_password"
             name="confirm_password"
             type={showConfirmPassword ? "text" : "password"}
-            minLength={6}
+            minLength={10}
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             className={cn(
@@ -97,6 +96,7 @@ export function AccountSettingsForm({
   initialEmail,
   initialAvatarUrl,
 }: AccountSettingsFormProps) {
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [profileState, profileAction] = useActionState<ProfileActionResult | null, FormData>(
     async (_prev, formData) => updateProfile(formData),
     null
@@ -113,10 +113,10 @@ export function AccountSettingsForm({
   );
 
   return (
-    <div className="flex flex-col space-y-6">
-      <Card className="border border-border bg-card">
+    <div className="admin-index-surface">
+      <section className="px-4 py-4 md:px-5 md:py-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-start">
-          <CardHeader className="pb-4 md:w-1/2">
+          <div className="pb-1 md:w-1/2">
             <div className="space-y-2">
               <h2 className="text-lg font-medium text-card-foreground">Perfil</h2>
               <p className="text-sm text-muted-foreground">
@@ -127,8 +127,8 @@ export function AccountSettingsForm({
                 pública de tu perfil.
               </p>
             </div>
-          </CardHeader>
-          <CardContent className="md:w-1/2">
+          </div>
+          <div className="md:w-1/2">
             <form action={profileAction} className="space-y-4 md:max-w-sm md:ml-auto">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -171,13 +171,13 @@ export function AccountSettingsForm({
                 Guardar cambios
               </Button>
             </form>
-          </CardContent>
+          </div>
         </div>
-      </Card>
+      </section>
 
-      <Card className="border border-border bg-card">
+      <section className="border-t border-border/70 px-4 py-4 md:px-5 md:py-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-start">
-          <CardHeader className="pb-4 md:w-1/2">
+          <div className="pb-1 md:w-1/2">
             <div className="space-y-2">
               <h2 className="text-lg font-medium text-card-foreground">Contraseña</h2>
               <p className="text-sm text-muted-foreground">
@@ -187,8 +187,8 @@ export function AccountSettingsForm({
                 Te pediremos que vuelvas a iniciar sesión si cambias tu contraseña desde otros dispositivos.
               </p>
             </div>
-          </CardHeader>
-          <CardContent className="md:w-1/2">
+          </div>
+          <div className="md:w-1/2">
             <form action={passwordAction} className="space-y-4 md:max-w-sm md:ml-auto">
               <PasswordFields />
               {passwordState && "error" in passwordState ? (
@@ -205,32 +205,54 @@ export function AccountSettingsForm({
                 Actualizar contraseña
               </Button>
             </form>
-          </CardContent>
+          </div>
         </div>
-      </Card>
+      </section>
 
-      <Card className="border border-border bg-card">
+      <section className="border-t border-border/70 px-4 py-4 md:px-5 md:py-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-start">
-          <CardHeader className="pb-4 md:w-1/2">
+          <div className="pb-1 md:w-1/2">
             <h2 className="text-lg font-medium text-card-foreground">Eliminar cuenta</h2>
             <p className="text-sm text-muted-foreground">
               Eliminar tu cuenta borrará tus datos de proveedor, servicios e ítems asociados y cerrará tu sesión.
             </p>
-          </CardHeader>
-          <CardContent className="md:w-1/2">
+          </div>
+          <div className="md:w-1/2">
             <form action={deleteAction} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="delete_confirmation">
+                  Escribe ELIMINAR para confirmar
+                </Label>
+                <Input
+                  id="delete_confirmation"
+                  value={deleteConfirmation}
+                  onChange={(event) => setDeleteConfirmation(event.target.value)}
+                  placeholder="ELIMINAR"
+                  autoComplete="off"
+                />
+              </div>
               {deleteState && "error" in deleteState ? (
                 <p className="text-sm text-destructive" role="alert">
                   {deleteState.error}
                 </p>
               ) : null}
-              <Button type="submit" variant="destructive" className="w-full sm:w-auto">
+              <Button
+                type="submit"
+                variant="destructive"
+                className="w-full sm:w-auto"
+                disabled={deleteConfirmation !== "ELIMINAR"}
+                onClick={(event) => {
+                  if (!window.confirm("Esta acción eliminará tu cuenta y no se puede deshacer.")) {
+                    event.preventDefault();
+                  }
+                }}
+              >
                 Eliminar mi cuenta
               </Button>
             </form>
-          </CardContent>
+          </div>
         </div>
-      </Card>
+      </section>
     </div>
   );
 }

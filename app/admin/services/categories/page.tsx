@@ -12,15 +12,15 @@ export default async function AdminServiceCategoriesPage() {
   const categories = await listServiceCategories();
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="app-page">
+      <div className="app-title-block">
         <h2 className="text-xl font-semibold text-foreground">Categorías</h2>
         <p className="text-sm text-muted-foreground">
           Crea y edita las categorías que agrupan los servicios estandarizados del catálogo.
         </p>
       </div>
 
-      <section className="rounded-lg border border-border bg-card p-4">
+      <section className="rounded-xl border border-border bg-background p-5">
         <h3 className="mb-3 text-base font-medium text-card-foreground">Nueva categoría</h3>
         <form
           action={async (formData) => {

@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import type { AdminUserSummary } from "../actions";
 import { updateUserFromAdmin } from "../actions";
 
@@ -21,7 +20,7 @@ type Props = {
 
 export function UsersTable({ initialUsers }: Props) {
   const [users, setUsers] = useState<AdminUserSummary[]>(initialUsers);
-  const [typeFilter, setTypeFilter] = useState<"" | "customer" | "provider" | "admin">("");
+  const [typeFilter, setTypeFilter] = useState<"" | "customer" | "provider">("");
   const [statusFilter, setStatusFilter] = useState<"" | "active" | "inactive">("");
   const [search, setSearch] = useState("");
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
@@ -43,6 +42,7 @@ export function UsersTable({ initialUsers }: Props) {
   });
 
   const handleChange = (id: string, field: "user_type" | "status", value: string) => {
+    const previousUsers = users;
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, [field]: value } : u)),
     );
@@ -52,9 +52,7 @@ export function UsersTable({ initialUsers }: Props) {
       const next = { ...(user as AdminUserSummary), [field]: value };
       const result = await updateUserFromAdmin(next);
       if ("error" in result) {
-        // revert on error
-        setUsers((prev) => prev);
-        // eslint-disable-next-line no-alert
+        setUsers(previousUsers);
         alert(result.error);
       }
       setPendingUserId(null);
@@ -62,24 +60,23 @@ export function UsersTable({ initialUsers }: Props) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-3 md:space-y-4">
+      <div className="flex flex-wrap items-center gap-2 md:gap-3">
         <Select
           value={typeFilter || "all-types"}
           onValueChange={(value) =>
             setTypeFilter(
-              (value === "all-types" ? "" : value) as "" | "customer" | "provider" | "admin",
+              (value === "all-types" ? "" : value) as "" | "customer" | "provider",
             )
           }
         >
-          <SelectTrigger className="h-9 w-[160px]">
+          <SelectTrigger className="h-8 w-[150px] md:w-[160px]">
             <SelectValue placeholder="Todos los tipos" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all-types">Todos los tipos</SelectItem>
             <SelectItem value="customer">Cliente</SelectItem>
             <SelectItem value="provider">Proveedor</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -90,7 +87,7 @@ export function UsersTable({ initialUsers }: Props) {
             )
           }
         >
-          <SelectTrigger className="h-9 w-[160px]">
+          <SelectTrigger className="h-8 w-[150px] md:w-[160px]">
             <SelectValue placeholder="Todos los estados" />
           </SelectTrigger>
           <SelectContent>
@@ -103,29 +100,27 @@ export function UsersTable({ initialUsers }: Props) {
           placeholder="Buscar por email o usuario"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="h-9 max-w-xs"
+          className="h-8 w-full sm:max-w-xs"
         />
       </div>
 
-      <Separator className="border-border" />
-
-      <div className="rounded-md border border-border bg-card">
+      <div className="admin-index-surface">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Usuario</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead className="px-3 md:px-4 lg:px-5">Usuario</TableHead>
+              <TableHead className="px-3 md:px-4">Email</TableHead>
+              <TableHead className="px-3 md:px-4">Tipo</TableHead>
+              <TableHead className="px-3 md:px-4">Estado</TableHead>
               <TableHead className="text-right">Servicios creados</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredUsers.map((user) => (
               <TableRow key={user.id}>
-                <TableCell>{user.username}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
+                <TableCell className="px-3 md:px-4 lg:px-5">{user.username}</TableCell>
+                <TableCell className="px-3 md:px-4">{user.email}</TableCell>
+                <TableCell className="px-3 md:px-4">
                   <Select
                     value={user.user_type}
                     onValueChange={(value) =>
@@ -139,11 +134,10 @@ export function UsersTable({ initialUsers }: Props) {
                     <SelectContent>
                       <SelectItem value="customer">Cliente</SelectItem>
                       <SelectItem value="provider">Proveedor</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>
+                <TableCell className="px-3 md:px-4">
                   <Select
                     value={user.status}
                     onValueChange={(value) =>
@@ -160,7 +154,7 @@ export function UsersTable({ initialUsers }: Props) {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="text-right text-xs text-muted-foreground">
+                <TableCell className="px-3 text-right text-xs text-muted-foreground md:px-4 lg:px-5">
                   {user.services_count ?? 0}
                 </TableCell>
               </TableRow>

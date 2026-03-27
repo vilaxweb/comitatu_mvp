@@ -10,20 +10,40 @@ type ProviderServiceFormProps = {
   predefinedServiceId: string;
   initialPrice?: number | null;
   initialDuration?: number | null;
+  defaultPrice?: number | null;
+  defaultDuration?: number | null;
   onDirtyChange?: (hasUnsaved: boolean, save: () => void) => void;
+  compact?: boolean;
 };
 
 export function ProviderServiceForm({
   predefinedServiceId,
   initialPrice,
   initialDuration,
+  defaultPrice,
+  defaultDuration,
   onDirtyChange,
+  compact = false,
 }: ProviderServiceFormProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const [active, setActive] = useState<boolean>(Boolean(initialPrice && initialDuration));
-  const [price, setPrice] = useState<string>(initialPrice != null ? String(initialPrice) : "");
-  const [duration, setDuration] = useState<string>(initialDuration != null ? String(initialDuration) : "");
+  const [active, setActive] = useState<boolean>(
+    initialPrice != null && initialDuration != null,
+  );
+  const [price, setPrice] = useState<string>(
+    initialPrice != null
+      ? String(initialPrice)
+      : defaultPrice != null
+        ? String(defaultPrice)
+        : "",
+  );
+  const [duration, setDuration] = useState<string>(
+    initialDuration != null
+      ? String(initialDuration)
+      : defaultDuration != null
+        ? String(defaultDuration)
+        : "",
+  );
   const [error, setError] = useState<string | null>(null);
 
   const saving = isPending;
@@ -37,7 +57,7 @@ export function ProviderServiceForm({
       return;
     }
     if (!Number.isInteger(durationNumber) || durationNumber <= 0) {
-      setError("Introduce una duración válida en minutos (entero mayor que 0).");
+      setError("Introduce una duración válida en horas (entero mayor que 0).");
       return;
     }
 
@@ -63,11 +83,45 @@ export function ProviderServiceForm({
     });
   };
 
+  const handleActivate = () => {
+    setError(null);
+    const nextPrice = price || (defaultPrice != null ? String(defaultPrice) : "0");
+    const nextDuration =
+      duration || (defaultDuration != null ? String(defaultDuration) : "1");
+    const priceNumber = Number(nextPrice);
+    const durationNumber = Number(nextDuration);
+
+    if (!Number.isFinite(priceNumber) || priceNumber <= 0) {
+      setError("No se pudo activar: precio por defecto inválido.");
+      return;
+    }
+    if (!Number.isInteger(durationNumber) || durationNumber <= 0) {
+      setError("No se pudo activar: duración por defecto inválida.");
+      return;
+    }
+
+    setPrice(nextPrice);
+    setDuration(nextDuration);
+    startTransition(async () => {
+      await upsertProviderService({
+        predefinedServiceId,
+        price: priceNumber,
+        duration: durationNumber,
+      });
+      setActive(true);
+      router.refresh();
+      onDirtyChange?.(false, handleSave);
+    });
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-end gap-2">
         <div className="space-y-1">
-          <Label className="text-xs font-medium text-muted-foreground" htmlFor={`price-${predefinedServiceId}`}>
+          <Label
+            className={compact ? "sr-only" : "text-xs font-medium text-muted-foreground"}
+            htmlFor={`price-${predefinedServiceId}`}
+          >
             Precio
           </Label>
           <Input
@@ -85,8 +139,11 @@ export function ProviderServiceForm({
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs font-medium text-muted-foreground" htmlFor={`duration-${predefinedServiceId}`}>
-            Duración (min)
+          <Label
+            className={compact ? "sr-only" : "text-xs font-medium text-muted-foreground"}
+            htmlFor={`duration-${predefinedServiceId}`}
+          >
+            Duración (h)
           </Label>
           <Input
             id={`duration-${predefinedServiceId}`}
@@ -117,10 +174,7 @@ export function ProviderServiceForm({
                 }
               } else {
                 if (!saving) {
-                  setActive(true);
-                  if (!price) setPrice("0");
-                  if (!duration) setDuration("60");
-                  onDirtyChange?.(true, handleSave);
+                  handleActivate();
                 }
               }
             }}

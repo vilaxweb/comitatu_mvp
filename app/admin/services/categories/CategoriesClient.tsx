@@ -33,34 +33,38 @@ export function CategoriesClient({ initialCategories, onSave }: CategoriesClient
   };
 
   return (
-    <div className="space-y-3 pt-16">
+    <div className="space-y-3 pt-14 md:pt-16">
       <UnsavedChangesBar hasUnsavedChanges={dirty} onSave={handleSave} onCancel={handleCancel} />
-      <ul className="space-y-2">
-        {categories.map((category) => (
-          <li
-            key={category.id}
-            className="flex flex-col gap-2 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-              <Input
-                name="name"
-                value={category.name}
-                onChange={(e) => handleFieldChange(category.id, "name", e.target.value)}
-                className="sm:max-w-xs"
-                aria-label="Nombre de la categoría"
-                required
-              />
-              <Input
-                name="description"
-                value={category.description ?? ""}
-                onChange={(e) => handleFieldChange(category.id, "description", e.target.value)}
-                placeholder="Descripción (opcional)"
-                aria-label="Descripción de la categoría"
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="admin-index-surface">
+        <div className="admin-index-header hidden sm:grid sm:grid-cols-[minmax(220px,2fr)_minmax(320px,3fr)] sm:gap-3">
+          <span>Nombre</span>
+          <span>Descripción</span>
+        </div>
+        <ul className="admin-index-list">
+          {categories.map((category) => (
+            <li key={category.id} className="px-3 py-2.5 md:px-4 md:py-3 lg:px-5">
+              <div className="grid gap-2.5 md:gap-3 sm:grid-cols-[minmax(220px,2fr)_minmax(320px,3fr)] sm:items-center">
+                <Input
+                  name="name"
+                  value={category.name}
+                  onChange={(e) => handleFieldChange(category.id, "name", e.target.value)}
+                  className="h-8 w-full"
+                  aria-label="Nombre de la categoría"
+                  required
+                />
+                <Input
+                  name="description"
+                  value={category.description ?? ""}
+                  onChange={(e) => handleFieldChange(category.id, "description", e.target.value)}
+                  placeholder="Descripción (opcional)"
+                  aria-label="Descripción de la categoría"
+                  className="h-8 w-full"
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

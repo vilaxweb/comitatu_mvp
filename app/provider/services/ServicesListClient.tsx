@@ -32,6 +32,19 @@ export type ServiceWithItems = {
 
 type Item = { id: string; name: string; price: string; estimated_time: string; active: boolean };
 
+function getEstimatedHoursValue(value: string): string {
+  const normalized = value.trim().toLowerCase().replace(",", ".");
+  if (!normalized) return "";
+
+  const directNumber = Number(normalized);
+  if (Number.isFinite(directNumber) && directNumber > 0) {
+    return String(directNumber);
+  }
+
+  const matched = normalized.match(/^(\d+(?:\.\d+)?)\s*(h|hr|hrs|hora|horas)$/);
+  return matched ? matched[1] : "";
+}
+
 function ItemRow({
   item,
   serviceId,
@@ -101,13 +114,17 @@ function ItemRow({
             </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor={`item-time-${item.id}`} className="text-xs font-medium text-muted-foreground">
-                Tiempo
+                Tiempo (horas)
               </Label>
               <Input
                 id={`item-time-${item.id}`}
                 name="estimated_time"
-                defaultValue={item.estimated_time}
-                placeholder="ej. 2 días"
+                type="number"
+                step="0.5"
+                min={0.5}
+                inputMode="decimal"
+                defaultValue={getEstimatedHoursValue(item.estimated_time)}
+                placeholder="ej. 2"
                 required
                 className="h-8 w-28"
               />
@@ -185,7 +202,15 @@ function ItemRow({
             >
               <Pencil className="size-4" aria-hidden />
             </Button>
-            <form action={deleteItem as unknown as VoidFormAction} className="inline">
+            <form
+              action={deleteItem as unknown as VoidFormAction}
+              className="inline"
+              onSubmit={(event) => {
+                if (!window.confirm(`Se eliminará el ítem "${item.name}". Esta acción no se puede deshacer.`)) {
+                  event.preventDefault();
+                }
+              }}
+            >
               <input type="hidden" name="itemId" value={item.id} />
               <input type="hidden" name="serviceId" value={serviceId} />
               <Button
@@ -206,11 +231,13 @@ function ItemRow({
 
 export function ServicesListClient({ services }: { services: ServiceWithItems[] }) {
   return (
-    <ul className="space-y-2">
-      {services.map((service) => (
-        <ExpandableServiceCard key={service.id} service={service} />
-      ))}
-    </ul>
+    <div className="admin-index-surface">
+      <ul className="admin-index-list">
+        {services.map((service) => (
+          <ExpandableServiceCard key={service.id} service={service} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -221,12 +248,12 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
   const router = useRouter();
 
   return (
-    <li className="flex flex-col w-full rounded-lg border border-border bg-card shadow-sm overflow-hidden transition-colors">
+    <li className="flex w-full flex-col overflow-hidden transition-colors">
       <div className="flex w-full items-center">
         <button
           type="button"
           onClick={() => setOpen((prev) => !prev)}
-          className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
+          className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left md:px-4 md:py-3 lg:px-5"
           aria-expanded={open}
         >
           <span className="flex shrink-0 text-muted-foreground" aria-hidden>
@@ -256,7 +283,7 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
           </div>
         </button>
         <div
-          className="flex shrink-0 items-center pr-4 py-3"
+          className="flex shrink-0 items-center py-2.5 pr-3 md:py-3 md:pr-4 lg:pr-5"
           onClick={(e) => e.stopPropagation()}
           role="presentation"
         >
@@ -290,9 +317,9 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
           open ? "visible" : "hidden"
         )}
       >
-        <div className="p-4 space-y-4">
+        <div className="space-y-4 px-3 py-3 md:px-4 md:py-4 lg:px-5">
           {hasItems ? (
-            <div className="rounded-lg border border-border bg-card overflow-hidden">
+            <div className="admin-index-surface">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -334,7 +361,15 @@ function ExpandableServiceCard({ service }: { service: ServiceWithItems }) {
                 Editar servicio
               </Link>
             </Button>
-            <form action={deleteService as unknown as VoidFormAction} className="inline">
+            <form
+              action={deleteService as unknown as VoidFormAction}
+              className="inline"
+              onSubmit={(event) => {
+                if (!window.confirm(`Se eliminará el servicio "${service.name}" con todos sus ítems.`)) {
+                  event.preventDefault();
+                }
+              }}
+            >
               <input type="hidden" name="serviceId" value={service.id} />
               <Button
                 type="submit"

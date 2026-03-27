@@ -58,7 +58,7 @@ export default async function ProviderServiceDetailPage({
   const typedService = service as unknown as ServiceRow;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="app-page space-y-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/provider/services" className="hover:underline">
           Mis Servicios

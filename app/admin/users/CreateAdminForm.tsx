@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { createAdminUser, type AdminCreateResult } from "../actions";
+import { createUserFromAdmin, type AdminCreateResult } from "../actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,9 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function CreateAdminForm() {
+export function CreateUserForm() {
   const [state, formAction] = useActionState<AdminCreateResult | null, FormData>(
-    async (_prev, formData) => createAdminUser(formData),
+    async (_prev, formData) => createUserFromAdmin(formData),
     null,
   );
 
@@ -47,16 +47,31 @@ export function CreateAdminForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-medium text-foreground">
-          Contraseña (mín. 6 caracteres)
+          Contraseña (mín. 10, con mayúscula, minúscula y número)
         </Label>
         <Input
           id="password"
           name="password"
           type="password"
           autoComplete="new-password"
-          minLength={6}
+          minLength={10}
           required
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="user_type" className="text-sm font-medium text-foreground">
+          Tipo de usuario
+        </Label>
+        <Select name="user_type" defaultValue="customer" required>
+          <SelectTrigger id="user_type" className="w-full">
+            <SelectValue placeholder="Selecciona el tipo de usuario" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="customer">Cliente</SelectItem>
+            <SelectItem value="provider">Proveedor</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-2">
         <Label htmlFor="status" className="text-sm font-medium text-foreground">
@@ -80,12 +95,12 @@ export function CreateAdminForm() {
       ) : null}
       {state && "success" in state && state.success ? (
         <p className="text-sm text-emerald-600" role="status">
-          Administrador creado correctamente.
+          Usuario creado correctamente.
         </p>
       ) : null}
 
       <Button type="submit" className="w-full">
-        Crear administrador
+        Crear usuario
       </Button>
     </form>
   );

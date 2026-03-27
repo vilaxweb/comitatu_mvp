@@ -43,7 +43,7 @@ function SummaryCard({ title, description, total }: SummaryCardProps) {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+      <div className="app-card p-4 shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <p className="flex-1 truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {title}

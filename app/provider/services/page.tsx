@@ -39,7 +39,7 @@ export default async function ProviderServicesPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="app-page">
         <p className="text-sm text-destructive">Error al cargar los servicios.</p>
       </div>
     );
@@ -48,8 +48,8 @@ export default async function ProviderServicesPage() {
   const list = (services ?? []) as ServiceRow[];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div>
+    <div className="app-page">
+      <div className="app-title-block">
         <h1 className="text-xl font-semibold text-foreground">Mis Servicios</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Despliega cada servicio para ver sus ítems en detalle y editarlos.
@@ -57,10 +57,10 @@ export default async function ProviderServicesPage() {
       </div>
 
       {list.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
+        <div className="rounded-xl border border-border bg-background p-6 text-center text-muted-foreground">
           <p className="text-sm">Aún no tienes servicios.</p>
           <Link href="/provider">
-            <Button className="mt-3">Añadir primer servicio</Button>
+            <Button className="mt-3">Crear primer servicio</Button>
           </Link>
         </div>
       ) : (

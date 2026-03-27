@@ -29,12 +29,12 @@ export function UnsavedChangesBar({
           transition={{ duration: 0.25, ease: "easeOut", delay: 0.3 }}
           className={cn(
             // Barra flotante centrada dentro del área de contenido (main)
-            "absolute top-4 left-1/2 z-40 flex w-full max-w-xl -translate-x-1/2 flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm",
+            "absolute top-4 left-1/2 z-40 flex w-full max-w-xl -translate-x-1/2 items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm whitespace-nowrap",
             className,
           )}
         >
-          <span className="font-medium">{message}</span>
-          <div className="flex items-center gap-2">
+          <span className="min-w-0 truncate font-medium">{message}</span>
+          <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"

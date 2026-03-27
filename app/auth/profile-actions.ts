@@ -3,8 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProviderUser } from "@/lib/auth/get-provider-user";
-
-const MIN_PASSWORD_LENGTH = 6;
+import { getPasswordPolicyMessage, isStrongPassword } from "@/lib/auth/security";
 
 export type ProfileActionResult = { error: string } | { success: true };
 
@@ -40,7 +39,7 @@ export async function updateProfile(formData: FormData): Promise<ProfileActionRe
 }
 
 export async function updatePassword(formData: FormData): Promise<ProfileActionResult> {
-  const _user = await getProviderUser();
+  await getProviderUser();
   const supabase = await createClient();
 
   const newPassword = (formData.get("new_password") as string) ?? "";
@@ -49,8 +48,8 @@ export async function updatePassword(formData: FormData): Promise<ProfileActionR
   if (!newPassword) {
     return { error: "La nueva contraseña es obligatoria." };
   }
-  if (newPassword.length < MIN_PASSWORD_LENGTH) {
-    return { error: "La contraseña debe tener al menos 6 caracteres." };
+  if (!isStrongPassword(newPassword)) {
+    return { error: getPasswordPolicyMessage() };
   }
   if (newPassword !== confirmPassword) {
     return { error: "Las contraseñas no coinciden." };
@@ -69,10 +68,25 @@ export async function deleteAccount(): Promise<ProfileActionResult> {
   const { id: userId } = await getProviderUser();
   const supabase = await createClient();
 
-  await supabase.from("items").delete().eq("user_id", userId);
-  await supabase.from("services").delete().eq("user_id", userId);
-  await supabase.from("provider_details").delete().eq("user_id", userId);
-  await supabase.from("users").delete().eq("id", userId);
+  const { error: providerServicesError } = await supabase.from("provider_services").delete().eq("provider_id", userId);
+  if (providerServicesError) {
+    return { error: providerServicesError.message || "No se pudo eliminar la cuenta." };
+  }
+
+  const { error: servicesError } = await supabase.from("services").delete().eq("user_id", userId);
+  if (servicesError) {
+    return { error: servicesError.message || "No se pudo eliminar la cuenta." };
+  }
+
+  const { error: providerDetailsError } = await supabase.from("provider_details").delete().eq("user_id", userId);
+  if (providerDetailsError) {
+    return { error: providerDetailsError.message || "No se pudo eliminar la cuenta." };
+  }
+
+  const { error: usersError } = await supabase.from("users").delete().eq("id", userId);
+  if (usersError) {
+    return { error: usersError.message || "No se pudo eliminar la cuenta." };
+  }
 
   await supabase.auth.signOut();
   redirect("/auth/login?account_deleted=1");

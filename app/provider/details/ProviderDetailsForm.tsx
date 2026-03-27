@@ -4,8 +4,8 @@ import { useActionState } from "react";
 import { upsertProviderDetails, type ProviderDetailsRow, type ProviderDetailsActionResult } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { PROVIDER_SECTORS } from "@/lib/provider-sectors";
 
 type Props = {
   initialData: ProviderDetailsRow | null;
@@ -18,15 +18,16 @@ export function ProviderDetailsForm({ initialData }: Props) {
   );
 
   return (
-    <Card className="border border-border bg-card">
-      <CardHeader className="pb-4">
+    <section className="admin-index-surface p-4 md:p-5">
+      <div className="pb-4">
         <h2 className="text-lg font-medium text-card-foreground">Datos para facturación</h2>
         <p className="text-sm text-muted-foreground">
           Nombre, empresa, DNI/CIF, dirección, email de facturación e IBAN para pagos.
         </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <form action={formAction} className="space-y-4">
+      </div>
+      <div className="space-y-4">
+        <form action={formAction} className="space-y-4 divide-y divide-border/70">
+          <div className="grid gap-4 pt-4 first:pt-0">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="nombre">Nombre / contacto</Label>
@@ -51,7 +52,8 @@ export function ProviderDetailsForm({ initialData }: Props) {
               />
             </div>
           </div>
-
+          </div>
+          <div className="grid gap-4 pt-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="dni">DNI</Label>
@@ -76,7 +78,8 @@ export function ProviderDetailsForm({ initialData }: Props) {
               />
             </div>
           </div>
-
+          </div>
+          <div className="grid gap-4 pt-4">
           <div className="space-y-2">
             <Label htmlFor="direccion">Dirección</Label>
             <Input
@@ -88,7 +91,6 @@ export function ProviderDetailsForm({ initialData }: Props) {
               className="w-full"
             />
           </div>
-
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="telefono">Teléfono</Label>
@@ -113,6 +115,27 @@ export function ProviderDetailsForm({ initialData }: Props) {
               />
             </div>
           </div>
+          </div>
+          <div className="grid gap-4 pt-4">
+          <div className="space-y-2">
+            <Label htmlFor="sector">Sector</Label>
+            <select
+              id="sector"
+              name="sector"
+              defaultValue={initialData?.sector ?? ""}
+              required
+              className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs"
+            >
+              <option value="" disabled>
+                Selecciona el sector de tu empresa
+              </option>
+              {PROVIDER_SECTORS.map((sector) => (
+                <option key={sector} value={sector}>
+                  {sector}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="iban">IBAN para pagos</Label>
@@ -127,6 +150,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
             <p className="text-xs text-muted-foreground">
               Añade la cuenta bancaria donde quieres recibir los pagos de tus servicios.
             </p>
+          </div>
           </div>
 
           {state && "error" in state ? (
@@ -144,7 +168,7 @@ export function ProviderDetailsForm({ initialData }: Props) {
             Guardar datos
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
